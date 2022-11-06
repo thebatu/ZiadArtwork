@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "489252917836",
+    "project_id": "ziad-artwork",
+    "storage_bucket": "ziad-artwork.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489252917836:android:e35bd905e27dbb1989dae9",
+        "android_client_info": {
+          "package_name": "com.example.ziadartwork"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489252917836-20jni8qoipgjnopeo57052f8khuflirj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFNLONL2SLmC66dik4z-j_hnFktcAZTGU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489252917836-20jni8qoipgjnopeo57052f8khuflirj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
