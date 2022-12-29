@@ -21,7 +21,7 @@ class PaintingsRepoImpl(
 
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->
             val paintingsResponse = if (snapshot != null) {
-                val paintings = snapshot.toObjects<Painting>()
+                val paintings: List<Painting> = snapshot.toObjects<Painting>()
                 Response.Success(paintings)
             } else {
                 Response.Failure(e)
