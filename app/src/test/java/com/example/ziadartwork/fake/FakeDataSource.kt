@@ -1,11 +1,10 @@
 package com.example.ziadartwork.fake
 
-import com.example.ziadartwork.Response
+import com.example.ziadartwork.Result
 import com.example.ziadartwork.model.Painting
-import kotlinx.coroutines.flow.flowOf
 
 object FakeDataSource {
-    val paintingsMock = Response.Success(
+    val paintingsMock = Result.Success(
         listOf(
             Painting(
                 id = "1",

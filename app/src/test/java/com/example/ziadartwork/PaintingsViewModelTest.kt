@@ -1,12 +1,12 @@
 package com.example.ziadartwork
 
 import FakeNetworkPaintingRepository
-import com.example.ziadartwork.UI.MainActivityViewModel
+import androidx.lifecycle.SavedStateHandle
+import com.example.ziadartwork.ui.MainActivityViewModel
 import com.example.ziadartwork.model.Painting
 import com.example.ziadartwork.rules.TestDispatcherRule
-import com.example.ziadartwork.usecases.GetPaintingsUseCase
+import com.example.ziadartwork.usecases.PaintingsUseCases
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,15 +26,16 @@ class PaintingsViewModelTest {
 
 
     private lateinit var viewModel: MainActivityViewModel
-    private val getPaintingsUseCase = GetPaintingsUseCase(FakeNetworkPaintingRepository())
+    private val paintingsUseCases = PaintingsUseCases(FakeNetworkPaintingRepository())
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         viewModel = MainActivityViewModel(
-            getPaintingsUseCase,
-            testDispatcher2
+            paintingsUseCases,
+            testDispatcher2,
+            savedStateHandle = SavedStateHandle()
         )
     }
 
@@ -46,13 +47,13 @@ class PaintingsViewModelTest {
 
 //            testDispatcher.testDispatcher.scheduler.advanceUntilIdle()
 
-            val data = getPaintingsUseCase.invoke()
+            val data = paintingsUseCases.invoke()
 
             val value = viewModel.paintingsState.value
             val s = ""
 
             assertEquals(
-                Response.Success(emptyList<Painting>()), viewModel.paintingsState.value
+                Result.Success(emptyList<Painting>()), viewModel.paintingsState.value
             )
         }
     }

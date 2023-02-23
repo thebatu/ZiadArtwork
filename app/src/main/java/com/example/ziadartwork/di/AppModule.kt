@@ -1,9 +1,9 @@
-package com.example.ziadartwork.DI
+package com.example.ziadartwork.di
 
 import com.example.ziadartwork.AppDispatchers
 import com.example.ziadartwork.model.PaintingsRepoImpl
 import com.example.ziadartwork.model.PaintingsRepository
-import com.example.ziadartwork.usecases.GetPaintingsUseCase
+import com.example.ziadartwork.usecases.PaintingsUseCases
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -29,8 +29,8 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providesPaintingsUserCases() : GetPaintingsUseCase {
-        return GetPaintingsUseCase(providePaintingsRepository())
+    fun providesPaintingsUserCases() : PaintingsUseCases {
+        return PaintingsUseCases(providePaintingsRepository())
 
     }
 

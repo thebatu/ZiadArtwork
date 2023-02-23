@@ -1,8 +1,9 @@
-package com.example.ziadartwork.UI
+package com.example.ziadartwork.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -11,8 +12,8 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,43 +23,46 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.example.jetnews.navigation.Destination
 import com.example.ziadartwork.R
-import com.example.ziadartwork.Response
+import com.example.ziadartwork.Result
 import com.example.ziadartwork.model.Painting
-import kotlin.reflect.KFunction1
 
-
+@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun PaintingsHomeScreen(
-    modifier: Modifier = Modifier,
-    retryAction: ()-> Unit,
-    paintingsScreenState: Response<List<Painting>>
-
+    onPaintingSelected: (String) -> Unit = {},
+    viewModel: MainActivityViewModel = hiltViewModel()
 ) {
-    when (paintingsScreenState) {
-        is Response.Success ->
-            (paintingsScreenState).data?.let {
+
+    val homeScreenState by remember(viewModel) {
+        viewModel.fetchPaintings
+    }.collectAsStateWithLifecycle(Result.Loading)
+
+    when (homeScreenState) {
+        is Result.Success ->
+            (homeScreenState as Result.Success<List<Painting>>).data?.let {
                 PaintingsItemList(
-                    paintingsList = it
+                    paintingsList = it,
+                    onPaintingSelected = onPaintingSelected
                 )
             }
-        is Response.Failure -> ErrorScreen(retryAction = { retryAction })
-        is Response.Loading -> LoadingScreen()
+        is Result.Error -> ErrorScreen(retryAction = { })
+        is Result.Loading -> LoadingScreen()
     }
-
-//    Scaffold(
-//        topBar = {
-//            TopAppBar()
-//        },
-
 }
 
-@Composable
-fun PaintingsItemList(paintingsList: List<Painting>) {
 
+@Composable
+fun PaintingsItemList(
+    paintingsList: List<Painting>,
+    onPaintingSelected: (String) -> Unit
+) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 200.dp),
 
@@ -69,7 +73,9 @@ fun PaintingsItemList(paintingsList: List<Painting>) {
                 imageUrl = painting.url,
                 contentDescription = painting.description,
                 name = painting.name,
-                id = painting.id
+                id = painting.id,
+                onPaintingSelected = onPaintingSelected
+
             )
         }
     }
@@ -82,6 +88,7 @@ fun PaintingItem(
     id: String,
     contentDescription: String?,
     modifier: Modifier = Modifier,
+    onPaintingSelected: (String) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -105,6 +112,11 @@ fun PaintingItem(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
+                .clickable(
+                    onClick = {
+                        onPaintingSelected(Destination.DetailDestination.withArgs(id))
+                    }
+                )
                 .border(BorderStroke(1.dp, Color.Black)),
         )
     }
@@ -143,23 +155,6 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
         )
     }
 }
-
-//@Composable
-//fun TopAppBar() {
-//    topBar = (
-//    title = { Text(text = "Top App Bar") },
-//    navigationIcon = {
-//        IconButton(onClick = {}) {
-//            Icon(Icons.Filled.ArrowBack, "backIcon")
-//        }
-//    },
-//    backgroundColor = MaterialTheme.colors.primary,
-//    contentColor = Color.White,
-//    elevation = 10.dp
-//    )
-
-
-//}
 
 
 

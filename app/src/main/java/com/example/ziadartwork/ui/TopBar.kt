@@ -1,4 +1,4 @@
-package com.example.ziadartwork.UI
+package com.example.ziadartwork.ui
 
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
