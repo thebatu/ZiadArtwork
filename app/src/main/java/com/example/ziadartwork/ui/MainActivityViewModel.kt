@@ -10,6 +10,7 @@ import com.example.ziadartwork.Result
 import com.example.ziadartwork.model.Painting
 import com.example.ziadartwork.usecases.PaintingsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
@@ -27,7 +28,6 @@ class MainActivityViewModel @Inject constructor(
     val paintingsState: StateFlow<Result<List<Painting>>> = _paintingsState.asStateFlow()
     var paintingsList = emptyList<Painting>()
 
-
     val fetchPaintings: Flow<Result<List<Painting>>> =
         paintingsUseCase.invoke().onEach {
             Log.d(TAG, it.toString())
@@ -38,10 +38,8 @@ class MainActivityViewModel @Inject constructor(
                 is Result.Success -> {
                     Log.d(TAG, paintingsList.toString())
                     it.data
-
                 }
             }
-
         }
             .onCompletion {
                 Log.d(TAG, "COMPLETEEEEE: ")
@@ -51,6 +49,20 @@ class MainActivityViewModel @Inject constructor(
                 replay = 1
             )
 
+    suspend fun getPainting(id: String): Painting? {
+        val result = paintingsUseCase.getPainting(id)
+        return when (result) {
+            is Result.Success -> result.data
+            else -> null
+        }
+    }
+
+    sealed class PaintingsUiState {
+        object Loading : PaintingsUiState()
+        class Error(e: Throwable) : PaintingsUiState()
+        class Success(result: List<Painting>) : PaintingsUiState()
+
+    }
 
     private fun getPaintings(): List<Painting> {
         val result = _paintingsState.value
@@ -59,23 +71,6 @@ class MainActivityViewModel @Inject constructor(
             is Result.Success -> result.data
             else -> emptyList()
         }
-    }
-
-    suspend fun getPainting(id: String): Painting? {
-        val result = paintingsUseCase.getPainting(id)
-        return when (result) {
-            is Result.Success -> result.data
-            else -> null
-        }
-
-    }
-
-
-    sealed class PaintingsUiState {
-        object Loading : PaintingsUiState()
-        class Error(e: Throwable) : PaintingsUiState()
-        class Success(result: List<Painting>) : PaintingsUiState()
-
     }
 }
 

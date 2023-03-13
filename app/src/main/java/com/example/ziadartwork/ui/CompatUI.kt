@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.example.ziadartwork.ui
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
@@ -7,22 +10,25 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jetnews.navigation.Destination
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.navigation.animation.navigation
+import com.google.accompanist.navigation.animation.composable
 
 @Composable
 fun CompatUI(
     windowSize: WindowSize
 ) {
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
 
     Scaffold() { innerPadding ->
-        NavHost(
+        AnimatedNavHost(
             navController = navController,
             startDestination = Destination.MainDestination.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
         ) {
             composable(route = Destination.MainDestination.route) {
                 PaintingsHomeScreen(
@@ -50,7 +56,7 @@ fun CompatUI(
                 )
             ) { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
-                PaintingDetailScreen(id = id.orEmpty())
+                PaintingDetailScreen2(id = id.orEmpty())
             }
         }
     }

@@ -1,14 +1,23 @@
 package com.example.ziadartwork.ui
 
 import android.util.Log
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Button
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -16,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,7 +42,7 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun PaintingDetailScreen(id: String) {
+fun PaintingDetailScreen2(id: String) {
     val TAG = "PaintingDetailScreen"
     val viewModel: MainActivityViewModel = hiltViewModel()
     var openDialog by remember { mutableStateOf(false) }
@@ -77,7 +87,7 @@ fun PaintingDetailScreen(id: String) {
                 .padding(16.dp)
                 .clickable { openDialog = false }
             ) {
-            ZoomableImage(model = painting!!.url)
+            ZoomableImage2(model = painting!!.url)
         }
 
     }
@@ -85,7 +95,7 @@ fun PaintingDetailScreen(id: String) {
 
 
 @Composable
-fun ZoomableImage(model: String) {
+fun ZoomableImage2(model: String) {
     val angle by remember { mutableStateOf(0f) }
     var zoom by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
@@ -101,6 +111,7 @@ fun ZoomableImage(model: String) {
         contentScale = ContentScale.Fit,
         modifier = Modifier
             .border(BorderStroke(1.dp, Color.White))
+            .animateContentSize()
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .graphicsLayer(
                 scaleX = zoom,
@@ -131,25 +142,8 @@ fun ZoomableImage(model: String) {
                     }
                 )
             }
+
             .fillMaxSize()
+
     )
 }
-
-
-//@Composable
-//fun ZoomableImage(url: String) {
-//    val asyncImage: AsyncImagePainter = rememberAsyncImagePainter(url)
-//    Image(
-//        painter = asyncImage,
-//        contentDescription = null,
-//        contentScale = ContentScale.Fit,
-//        modifier = Modifier.fillMaxSize()
-//
-//
-//    )
-//}
-
-
-
-
-

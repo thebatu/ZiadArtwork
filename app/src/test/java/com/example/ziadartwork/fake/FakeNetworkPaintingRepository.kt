@@ -11,5 +11,9 @@ class FakeNetworkPaintingRepository : PaintingsRepository {
         return flow { Result.Success(data) }
     }
 
+    override suspend fun getPainting(id: String): Result<Painting> {
+        TODO("Not yet implemented")
+    }
+
 }
 

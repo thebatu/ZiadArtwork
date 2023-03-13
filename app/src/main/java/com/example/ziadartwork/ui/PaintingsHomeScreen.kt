@@ -23,7 +23,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
@@ -33,7 +32,6 @@ import com.example.ziadartwork.R
 import com.example.ziadartwork.Result
 import com.example.ziadartwork.model.Painting
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun PaintingsHomeScreen(
     onPaintingSelected: (String) -> Unit = {},
