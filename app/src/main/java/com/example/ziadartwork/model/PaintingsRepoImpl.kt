@@ -3,21 +3,23 @@ package com.example.ziadartwork.model
 import android.util.Log
 import com.example.ziadartwork.Result
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.firestore.ktx.toObjects
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.single
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 @ExperimentalCoroutinesApi
-class PaintingsRepoImpl(
-    private val paintingRef: CollectionReference
+class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
+    private val paintingRef: CollectionReference = Firebase.firestore.collection("paintings")
 
-) : PaintingsRepository {
     companion object {
         public val TAG = PaintingsRepoImpl::class.simpleName
 
