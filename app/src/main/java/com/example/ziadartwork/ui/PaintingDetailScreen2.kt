@@ -51,7 +51,7 @@ fun PaintingDetailSetup2(
 
     LaunchedEffect(id) {
         val TAG = "PaintingDetailScreen"
-        Log.d(TAG, "PaintingDetailScreen: ")
+        Log.d(TAG, "PaintingDetailScreen:  ")
         painting2 = viewModel.getPainting(id)
         imgModel2 = painting2?.url ?: ""
     }
