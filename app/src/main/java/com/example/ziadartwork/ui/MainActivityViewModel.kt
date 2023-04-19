@@ -10,7 +10,6 @@ import com.example.ziadartwork.Result
 import com.example.ziadartwork.model.Painting
 import com.example.ziadartwork.usecases.PaintingsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
@@ -18,7 +17,7 @@ import javax.inject.Inject
 class MainActivityViewModel @Inject constructor(
     private val paintingsUseCase: PaintingsUseCases,
     private val appDispatchers: AppDispatchers,
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val TAG = MainActivityViewModel::class.simpleName
@@ -46,7 +45,7 @@ class MainActivityViewModel @Inject constructor(
             }.shareIn(
                 scope = viewModelScope,
                 started = WhileUiSubscribed,
-                replay = 1
+                replay = 1,
             )
 
     suspend fun getPainting(id: String): Painting? {
@@ -61,7 +60,6 @@ class MainActivityViewModel @Inject constructor(
         object Loading : PaintingsUiState()
         class Error(e: Throwable) : PaintingsUiState()
         class Success(result: List<Painting>) : PaintingsUiState()
-
     }
 
     private fun getPaintings(): List<Painting> {
@@ -73,5 +71,3 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 }
-
-

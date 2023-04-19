@@ -1,13 +1,21 @@
 package com.example.ziadartwork.ui
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -16,7 +24,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
@@ -29,63 +39,108 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
+lateinit var imgModel: String
 
-@OptIn(ExperimentalComposeUiApi::class)
+@Preview()
 @Composable
-fun PaintingDetailScreen(id: String) {
-    val TAG = "PaintingDetailScreen"
-    val viewModel: MainActivityViewModel = hiltViewModel()
-    var openDialog by remember { mutableStateOf(false) }
+fun PaintingDetailScreen2Preview() {
+    ZoomablePaintingImg("111")
+}
 
+@Composable
+fun PaintingDetailSetup(
+    id: String,
+) {
+    val viewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(id) {
         mutableStateOf<Painting?>(null)
     }
 
     LaunchedEffect(id) {
+        val TAG = "PaintingDetailScreen"
         Log.d(TAG, "PaintingDetailScreen: ")
         painting = viewModel.getPainting(id)
+        imgModel = painting?.url ?: ""
     }
+    PaintingDetailScreen(painting)
+}
+
+@Composable
+fun PaintingDetailScreen(
+    painting: Painting?,
+) {
+    var imgVisible by remember { mutableStateOf(false) }
 
     if (painting != null) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(painting!!.url)
-                .crossfade(true)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .setHeader("Cache-Control", "max-age=31536000")
-                .networkCachePolicy(CachePolicy.ENABLED)
-                .build(),
-            contentDescription = "Painting detail image",
-            placeholder = painterResource(R.drawable.ic_broken_image),
-            error = painterResource(R.drawable.ic_broken_image),
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .fillMaxHeight(0.4f)
-                .fillMaxWidth()
-                .padding(16.dp)
-                .border(BorderStroke(1.dp, Color.White))
-                .clickable {
-                    openDialog = true
-                }
-        )
+        PaintingImg(painting) {
+            imgVisible = it
+        }
     }
 
-    if (openDialog) {
+    AnimatedVisibility(
+        visible = imgVisible,
+        enter = expandIn(
+            // Overwrites the default spring animation with tween
+            animationSpec = tween(200, easing = LinearOutSlowInEasing),
+            // Overwrites the corner of the content that is first revealed
+            expandFrom = Alignment.BottomEnd,
+        ) {
+            // Overwrites the initial size to 50 pixels by 50 pixels
+            IntSize(50, 50)
+        },
+        exit = shrinkOut(
+            animationSpec = tween(200, easing = FastOutSlowInEasing),
+            shrinkTowards = Alignment.BottomEnd,
+        ) { fullSize ->
+            // Overwrites the target size of the shrinking animation.
+            IntSize(fullSize.width / 10, fullSize.height / 5)
+        },
+    ) {
         Box(
             modifier = Modifier
+                .background(Color.Black)
                 .fillMaxSize()
                 .padding(16.dp)
-                .clickable { openDialog = false }
-            ) {
-            ZoomableImage(model = painting!!.url)
+                .clickable { imgVisible = false },
+        ) {
+            BackHandler {
+                imgVisible = false
+            }
+            ZoomablePaintingImg(model = painting!!.url)
         }
-
     }
 }
 
+@Composable
+fun PaintingImg(
+    painting: Painting,
+    onImgVisibleChanged: (Boolean) -> Unit, //
+) {
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(painting!!.url)
+            .crossfade(true)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .setHeader("Cache-Control", "max-age=31536000")
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .build(),
+        contentDescription = "Painting detail image",
+        placeholder = painterResource(R.drawable.ic_broken_image),
+        error = painterResource(R.drawable.ic_broken_image),
+        contentScale = ContentScale.Fit,
+        modifier = Modifier
+            .fillMaxHeight(0.4f)
+            .fillMaxWidth()
+            .padding(16.dp)
+            .border(BorderStroke(1.dp, Color.White))
+            .clickable {
+                onImgVisibleChanged(true)
+            },
+    )
+}
 
 @Composable
-fun ZoomableImage(model: String) {
+fun ZoomablePaintingImg(model: String) {
     val angle by remember { mutableStateOf(0f) }
     var zoom by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
@@ -105,7 +160,7 @@ fun ZoomableImage(model: String) {
             .graphicsLayer(
                 scaleX = zoom,
                 scaleY = zoom,
-                rotationZ = angle
+                rotationZ = angle,
             )
             .pointerInput(Unit) {
                 detectTransformGestures(
@@ -118,38 +173,20 @@ fun ZoomableImage(model: String) {
 
                             offsetX =
                                 (offsetX + (x * cos(angleRad) - y * sin(angleRad)).toFloat()).coerceIn(
-                                    -(screenWidth * zoom)..(screenWidth * zoom)
+                                    -(screenWidth * zoom)..(screenWidth * zoom),
                                 )
                             offsetY =
                                 (offsetY + (x * sin(angleRad) + y * cos(angleRad)).toFloat()).coerceIn(
-                                    -(screenHeight * zoom)..(screenHeight * zoom)
+                                    -(screenHeight * zoom)..(screenHeight * zoom),
                                 )
                         } else {
                             offsetX = 0F
                             offsetY = 0F
                         }
-                    }
+                    },
                 )
             }
-            .fillMaxSize()
+            .fillMaxSize(),
+
     )
 }
-
-
-//@Composable
-//fun ZoomableImage(url: String) {
-//    val asyncImage: AsyncImagePainter = rememberAsyncImagePainter(url)
-//    Image(
-//        painter = asyncImage,
-//        contentDescription = null,
-//        contentScale = ContentScale.Fit,
-//        modifier = Modifier.fillMaxSize()
-//
-//
-//    )
-//}
-
-
-
-
-

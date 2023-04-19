@@ -9,18 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.jetnews.navigation.Destination
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.google.accompanist.navigation.animation.navigation
 import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @Composable
 fun CompatUI(
-    windowSize: WindowSize
+    windowSize: WindowSize,
 ) {
     val navController = rememberAnimatedNavController()
 
@@ -43,7 +40,7 @@ fun CompatUI(
                             // Restore state when reselecting a previously selected item
                             restoreState = true
                         }
-                    }
+                    },
                 )
             }
             composable(
@@ -52,14 +49,13 @@ fun CompatUI(
                     navArgument("id") {
                         type = NavType.StringType
                         defaultValue = ""
-                    }
-                )
+                    },
+                ),
             ) { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
-                PaintingDetailScreen2(id = id.orEmpty())
+                PaintingDetailSetup2(id = id.orEmpty(), navController)
+//                MyUI()
             }
         }
     }
-
 }
-

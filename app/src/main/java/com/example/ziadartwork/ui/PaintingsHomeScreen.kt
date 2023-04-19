@@ -35,9 +35,8 @@ import com.example.ziadartwork.model.Painting
 @Composable
 fun PaintingsHomeScreen(
     onPaintingSelected: (String) -> Unit = {},
-    viewModel: MainActivityViewModel = hiltViewModel()
+    viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
-
     val homeScreenState by remember(viewModel) {
         viewModel.fetchPaintings
     }.collectAsStateWithLifecycle(Result.Loading)
@@ -47,7 +46,7 @@ fun PaintingsHomeScreen(
             (homeScreenState as Result.Success<List<Painting>>).data?.let {
                 PaintingsItemList(
                     paintingsList = it,
-                    onPaintingSelected = onPaintingSelected
+                    onPaintingSelected = onPaintingSelected,
                 )
             }
         is Result.Error -> ErrorScreen(retryAction = { })
@@ -55,16 +54,15 @@ fun PaintingsHomeScreen(
     }
 }
 
-
 @Composable
 fun PaintingsItemList(
     paintingsList: List<Painting>,
-    onPaintingSelected: (String) -> Unit
+    onPaintingSelected: (String) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 200.dp),
 
-        modifier = Modifier.fillMaxHeight()
+        modifier = Modifier.fillMaxHeight(),
     ) {
         items(paintingsList, key = { item -> item.id }) { painting ->
             PaintingItem(
@@ -72,7 +70,7 @@ fun PaintingsItemList(
                 contentDescription = painting.description,
                 name = painting.name,
                 id = painting.id,
-                onPaintingSelected = onPaintingSelected
+                onPaintingSelected = onPaintingSelected,
 
             )
         }
@@ -86,21 +84,21 @@ fun PaintingItem(
     id: String,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    onPaintingSelected: (String) -> Unit
+    onPaintingSelected: (String) -> Unit,
 ) {
     Card(
         modifier = modifier
             .padding(4.dp)
             .fillMaxWidth()
             .aspectRatio(1f),
-        elevation = 8.dp
+        elevation = 8.dp,
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(imageUrl)
                 .crossfade(true)
                 .diskCachePolicy(CachePolicy.ENABLED)
-                .setHeader("Cache-Control", "max-age=31536000")
+                .setHeader("CacheControl", "maxage=31536000")
                 .networkCachePolicy(CachePolicy.ENABLED)
                 .build(),
             placeholder = painterResource(R.drawable.ic_broken_image),
@@ -113,7 +111,7 @@ fun PaintingItem(
                 .clickable(
                     onClick = {
                         onPaintingSelected(Destination.DetailDestination.withArgs(id))
-                    }
+                    },
                 )
                 .border(BorderStroke(1.dp, Color.Black)),
         )
@@ -121,17 +119,17 @@ fun PaintingItem(
 }
 
 /**
- * The home screen displaying error message with re-attempt button.
+ * The home screen displaying error message with reattempt button.
  */
 @Composable
 fun ErrorScreen(
     retryAction: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(stringResource(R.string.loading_failed))
         Button(onClick = retryAction) {
@@ -144,15 +142,12 @@ fun ErrorScreen(
 fun LoadingScreen(modifier: Modifier = Modifier) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
         Image(
             modifier = Modifier.size(200.dp),
             painter = painterResource(R.drawable.loading_img),
-            contentDescription = stringResource(R.string.loading)
+            contentDescription = stringResource(R.string.loading),
         )
     }
 }
-
-
-
