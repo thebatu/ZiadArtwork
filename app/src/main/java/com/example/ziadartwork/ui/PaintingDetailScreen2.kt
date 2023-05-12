@@ -2,22 +2,19 @@ package com.example.ziadartwork.ui
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -65,11 +62,11 @@ fun PaintingDetailSetup2(
     PaintingDetailScreen2(painting2, navController)
 }
 
-private enum class PaintingState {
+private enum class PaintingSize {
     Small, Large
 }
 
-private enum class PaintingSize {
+private enum class PaintingZoom {
     Small, Large
 }
 
@@ -79,24 +76,24 @@ fun PaintingDetailScreen2(
     navController: NavHostController,
 ) {
     var paintingState by remember {
-        mutableStateOf(PaintingState.Small)
-    }
-
-    var paintingZoom by remember {
         mutableStateOf(PaintingSize.Small)
     }
 
+    var paintingZoom by remember {
+        mutableStateOf(PaintingZoom.Small)
+    }
+
     val paintingLarge: () -> Unit = {
-        paintingZoom = PaintingSize.Large
+        paintingZoom = PaintingZoom.Large
     }
 
     val paintingSmall: () -> Unit = {
-        paintingZoom = PaintingSize.Small
+        paintingZoom = PaintingZoom.Small
     }
 
     val popBackStack: () -> Unit = {
-        if (paintingState == PaintingState.Large) {
-            paintingState = PaintingState.Small
+        if (paintingState == PaintingSize.Large) {
+            paintingState = PaintingSize.Small
             paintingSmall()
         } else {
             navController.popBackStack()
@@ -104,11 +101,11 @@ fun PaintingDetailScreen2(
     }
 
     val toggleLargeImgVisibility: () -> Unit = {
-        if (paintingState == PaintingState.Small) {
-            paintingState = PaintingState.Large
+        if (paintingState == PaintingSize.Small) {
+            paintingState = PaintingSize.Large
             paintingLarge()
         } else {
-            paintingState = PaintingState.Small
+            paintingState = PaintingSize.Small
             paintingSmall()
         }
     }
@@ -117,19 +114,19 @@ fun PaintingDetailScreen2(
 
     val paintingSize by transition.animateDp(label = "painting Size Transition") {
         when (it) {
-            PaintingState.Small -> 350.dp
-            PaintingState.Large -> 500.dp
+            PaintingSize.Small -> 400.dp
+            PaintingSize.Large -> 600.dp
         }
     }
 
     val paintingOffset by transition.animateOffset(transitionSpec = {
-        if (this.initialState == PaintingState.Small) {
+        if (this.initialState == PaintingSize.Small) {
             tween(400) // launch duration
         } else {
             tween(600) // land duration
         }
     }, label = "painting offset") { animated ->
-        if (animated == PaintingState.Large) {
+        if (animated == PaintingSize.Large) {
             Offset(0f, 100f)
         } else {
             Offset(0f, 0f)
@@ -137,27 +134,45 @@ fun PaintingDetailScreen2(
     }
 
     if (painting != null) {
-        Column {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
             ZoomablePaintingImg2(
                 model = painting.url,
                 modifier = Modifier
                     .offset(paintingOffset.x.dp, paintingOffset.y.dp)
                     .size(size = paintingSize)
-                    .background(color = Color.White),
+                    .padding(8.dp),
                 resizeImg = toggleLargeImgVisibility,
                 goBack = popBackStack,
                 paintingLarge = paintingLarge,
                 paintingSmall = paintingSmall,
             )
-            if (paintingZoom == PaintingSize.Small) {
-                Image(
-                    modifier = Modifier.padding(top = 8.dp),
-                    painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
-                    contentDescription = null,
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
 
+
+            ) {
+                AnimatedVisibility(
+                    visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally()
+                ) {
+
+                    Image(
+                        painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+                        contentDescription = null,
+                    )
+
+                }
             }
+
         }
+
     }
 }
 
@@ -240,6 +255,7 @@ fun ZoomablePaintingImg2(
                     }
                 },
             )
+
     )
 }
 
