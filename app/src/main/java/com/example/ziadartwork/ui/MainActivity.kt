@@ -7,7 +7,7 @@ import com.example.ziadartwork.R
 import com.example.ziadartwork.ui.theme.ZiadArtworkTheme
 import dagger.hilt.android.AndroidEntryPoint
 
-
+    
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 

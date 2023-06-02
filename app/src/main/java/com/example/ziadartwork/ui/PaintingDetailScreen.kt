@@ -2,36 +2,30 @@ package com.example.ziadartwork.ui
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import com.example.ziadartwork.R
 import com.example.ziadartwork.model.Painting
 import kotlin.math.PI
@@ -39,17 +33,20 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-lateinit var imgModel: String
 
-@Preview()
+//18807
+lateinit var imgModel2: String
+
+@Preview(showBackground = true)
 @Composable
-fun PaintingDetailScreen2Preview() {
-    ZoomablePaintingImg("111")
+fun PaintingDetailScreenPreview() {
+//    PaintingDetailScreen2("111")
 }
 
 @Composable
 fun PaintingDetailSetup(
     id: String,
+    navController: NavHostController,
 ) {
     val viewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(id) {
@@ -58,90 +55,134 @@ fun PaintingDetailSetup(
 
     LaunchedEffect(id) {
         val TAG = "PaintingDetailScreen"
-        Log.d(TAG, "PaintingDetailScreen: ")
+        Log.d(TAG, "PaintingDetailScreen:  ")
         painting = viewModel.getPainting(id)
-        imgModel = painting?.url ?: ""
+        imgModel2 = painting?.url ?: ""
     }
-    PaintingDetailScreen(painting)
+    PaintingDetailScreen(painting, navController)
+}
+
+private enum class PaintingSize {
+    Small, Large
+}
+
+private enum class PaintingZoom {
+    Small, Large
 }
 
 @Composable
 fun PaintingDetailScreen(
     painting: Painting?,
+    navController: NavHostController,
 ) {
-    var imgVisible by remember { mutableStateOf(false) }
+    var paintingState by remember {
+        mutableStateOf(PaintingSize.Small)
+    }
+
+    var paintingZoom by remember {
+        mutableStateOf(PaintingZoom.Small)
+    }
+
+    val paintingLarge: () -> Unit = {
+        paintingZoom = PaintingZoom.Large
+    }
+
+    val paintingSmall: () -> Unit = {
+        paintingZoom = PaintingZoom.Small
+    }
+
+    val popBackStack: () -> Unit = {
+        if (paintingState == PaintingSize.Large) {
+            paintingState = PaintingSize.Small
+            paintingSmall()
+        } else {
+            navController.popBackStack()
+        }
+    }
+
+    val toggleLargeImgVisibility: () -> Unit = {
+        if (paintingState == PaintingSize.Small) {
+            paintingState = PaintingSize.Large
+            paintingLarge()
+        } else {
+            paintingState = PaintingSize.Small
+            paintingSmall()
+        }
+    }
+
+    val transition = updateTransition(targetState = paintingState, label = "transition")
+
+    val paintingSize by transition.animateDp(label = "painting Size Transition") {
+        when (it) {
+            PaintingSize.Small -> 400.dp
+            PaintingSize.Large -> 600.dp
+        }
+    }
+
+    val paintingOffset by transition.animateOffset(transitionSpec = {
+        if (this.initialState == PaintingSize.Small) {
+            tween(400) // launch duration
+        } else {
+            tween(600) // land duration
+        }
+    }, label = "painting offset") { animated ->
+        if (animated == PaintingSize.Large) {
+            Offset(0f, 100f)
+        } else {
+            Offset(0f, 0f)
+        }
+    }
 
     if (painting != null) {
-        PaintingImg(painting) {
-            imgVisible = it
-        }
-    }
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            ZoomablePaintingImg(
+                model = painting.url,
+                modifier = Modifier
+                    .offset(paintingOffset.x.dp, paintingOffset.y.dp)
+                    .size(size = paintingSize)
+                    .padding(8.dp),
+                resizeImg = toggleLargeImgVisibility,
+                goBack = popBackStack,
+                paintingLarge = paintingLarge,
+                paintingSmall = paintingSmall,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
 
-    AnimatedVisibility(
-        visible = imgVisible,
-        enter = expandIn(
-            // Overwrites the default spring animation with tween
-            animationSpec = tween(200, easing = LinearOutSlowInEasing),
-            // Overwrites the corner of the content that is first revealed
-            expandFrom = Alignment.BottomEnd,
-        ) {
-            // Overwrites the initial size to 50 pixels by 50 pixels
-            IntSize(50, 50)
-        },
-        exit = shrinkOut(
-            animationSpec = tween(200, easing = FastOutSlowInEasing),
-            shrinkTowards = Alignment.BottomEnd,
-        ) { fullSize ->
-            // Overwrites the target size of the shrinking animation.
-            IntSize(fullSize.width / 10, fullSize.height / 5)
-        },
-    ) {
-        Box(
-            modifier = Modifier
-                .background(Color.Black)
-                .fillMaxSize()
-                .padding(16.dp)
-                .clickable { imgVisible = false },
-        ) {
-            BackHandler {
-                imgVisible = false
+            ) {
+                AnimatedVisibility(
+                    visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally()
+                ) {
+
+                    Image(
+                        painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+                        contentDescription = null,
+                    )
+                }
             }
-            ZoomablePaintingImg(model = painting!!.url)
+
         }
     }
 }
 
 @Composable
-fun PaintingImg(
-    painting: Painting,
-    onImgVisibleChanged: (Boolean) -> Unit, //
+fun ZoomablePaintingImg(
+    model: String,
+    modifier: Modifier,
+    resizeImg: () -> Unit,
+    goBack: () -> Unit,
+    paintingLarge: () -> Unit,
+    paintingSmall: () -> Unit
 ) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(painting!!.url)
-            .crossfade(true)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .setHeader("Cache-Control", "max-age=31536000")
-            .networkCachePolicy(CachePolicy.ENABLED)
-            .build(),
-        contentDescription = "Painting detail image",
-        placeholder = painterResource(R.drawable.ic_broken_image),
-        error = painterResource(R.drawable.ic_broken_image),
-        contentScale = ContentScale.Fit,
-        modifier = Modifier
-            .fillMaxHeight(0.4f)
-            .fillMaxWidth()
-            .padding(16.dp)
-            .border(BorderStroke(1.dp, Color.White))
-            .clickable {
-                onImgVisibleChanged(true)
-            },
-    )
-}
-
-@Composable
-fun ZoomablePaintingImg(model: String) {
-    val angle by remember { mutableStateOf(0f) }
+    var angle by remember { mutableStateOf(0f) }
     var zoom by remember { mutableStateOf(1f) }
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
@@ -150,12 +191,27 @@ fun ZoomablePaintingImg(model: String) {
     val screenWidth = configuration.screenWidthDp.dp.value
     val screenHeight = configuration.screenHeightDp.dp.value
 
+    fun resetImgZoom() {
+        zoom = 1f
+        offsetX = 0f
+        offsetY = 0f
+        angle = 0f
+        paintingSmall()
+    }
+
+    BackHandler(enabled = true) {
+        if (zoomedImage(zoom, offsetX, offsetY, angle)) {
+            resetImgZoom()
+        } else {
+            goBack()
+        }
+    }
+
     AsyncImage(
         model,
         contentDescription = "Painting Detail",
-        contentScale = ContentScale.Fit,
-        modifier = Modifier
-            .border(BorderStroke(1.dp, Color.White))
+        contentScale = ContentScale.Crop,
+        modifier = modifier
             .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
             .graphicsLayer(
                 scaleX = zoom,
@@ -167,6 +223,7 @@ fun ZoomablePaintingImg(model: String) {
                     onGesture = { _, pan, gestureZoom, _ ->
                         zoom = (zoom * gestureZoom).coerceIn(1F..8F)
                         if (zoom > 1) {
+                            paintingLarge()
                             val x = (pan.x * zoom)
                             val y = (pan.y * zoom)
                             val angleRad = angle * PI / 180.0
@@ -186,7 +243,19 @@ fun ZoomablePaintingImg(model: String) {
                     },
                 )
             }
-            .fillMaxSize(),
+            .clickable(
+                onClick = {
+                    if (zoomedImage(zoom, offsetX, offsetY, angle)) {
+                        resetImgZoom()
+                    } else {
+                        resizeImg()
+                    }
+                },
+            )
 
     )
+}
+
+fun zoomedImage(zoom: Float, offsetX: Float, offsetY: Float, angle: Float): Boolean {
+    return (zoom != 1f || offsetX != 0f || offsetY != 0f || angle != 0f)
 }

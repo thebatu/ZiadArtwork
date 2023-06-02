@@ -26,4 +26,17 @@ object AppModule {
 
     }
 
+
+    @Provides
+    @Singleton
+    fun providesCartsRepository(): CartRepository {
+
+    }
+
+    @Provides
+    @Singleton
+    fun providesPaintingsUserCases(repo: PaintingsRepository): PaintingsUseCases {
+        return PaintingsUseCases(repo)
+    }
+
 }

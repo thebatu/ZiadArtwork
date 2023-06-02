@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.flow
 
 class FakeNetworkPaintingRepository : PaintingsRepository {
     override fun getAllPaintings(): Flow<Result<List<Painting>>> {
-        val data: com.example.ziadartwork.Response.Result.Success<List<Painting>> = FakeDataSource.paintingsMock
+        val data: Result.Success<List<Painting>> = FakeDataSource.paintingsMock
         return flow { Result.Success(data) }
     }
 
