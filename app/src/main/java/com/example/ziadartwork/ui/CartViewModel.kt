@@ -1,56 +1,65 @@
+package com.example.ziadartwork.ui
+
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.ziadartwork.Result
-import com.example.ziadartwork.model.Painting
-import dagger.hilt.android.lifecycle.HiltViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.example.jetsnack.model.SnackbarManager
+import com.example.ziadartwork.model.CartRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CartViewModel @Inject constructor(snackbarManager, CartRepository) : ViewModel() {
-    private val _cart = MutableStateFlow<List<Painting>>(emptyList())
-    val cartState: StateFlow<List<Painting>> = _cart.asStateFlow()
+class CartViewModel @Inject constructor(
+    snackbarManager: SnackbarManager,
+    private val cartRepository: CartRepository
+) : ViewModel() {
+    private val _cart = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val cartState: StateFlow<Map<String, Int>> = _cart.asStateFlow()
 
-
-    fun increaseSnackCount(snackId: Long) {
-        if (!shouldRandomlyFail()) {
-            val currentCount = _orderLines.value.first { it.snack.id == snackId }.count
-            updateSnackCount(snackId, currentCount + 1)
-        } else {
-            snackbarManager.showMessage(R.string.cart_increase_error)
+    init {
+        viewModelScope.launch {
+            cartRepository.getCartContent().collect { cartContent ->
+                // Handle the cartContent here
+                Log.d("MyTag", "Cart content: $cartContent")
+            }
         }
+
     }
 
-    fun decreaseSnackCount(snackId: Long) {
-        if (!shouldRandomlyFail()) {
-            val currentCount = _orderLines.value.first { it.snack.id == snackId }.count
+    fun increasePaintingCount(paintingId: String) {
+        viewModelScope.launch {
+            cartRepository.addToCart(paintingId)
+        }
+            val currentCount: Map<String, Int> = _cart.value
+            updatePaintingCount(paintingId, currentCount.size + 1)
+    }
+
+    fun decreaseSnackCount(paintingId: String) {
+            val currentCount = _cart.value.size
             if (currentCount == 1) {
-                // remove snack from cart
-                removeSnack(snackId)
+                removeSnack(paintingId)
             } else {
                 // update quantity in cart
-                updateSnackCount(snackId, currentCount - 1)
-            }
-        } else {
-            snackbarManager.showMessage(R.string.cart_decrease_error)
-        }
-    }
-
-    fun removeSnack(snackId: Long) {
-        _orderLines.value = _orderLines.value.filter { it.snack.id != snackId }
-    }
-
-    private fun updateSnackCount(snackId: Long, count: Int) {
-        _orderLines.value = _orderLines.value.map {
-            if (it.snack.id == snackId) {
-                it.copy(count = count)
-            } else {
-                it
+                updatePaintingCount(paintingId, currentCount - 1)
             }
         }
+
+    private fun removeSnack(paintingId: String) {
+        val currentCart = _cart.value.toMutableMap()
+        currentCart.remove(paintingId)
+        _cart.value = currentCart
+    }
+
+    private fun updatePaintingCount(paintingId: String, count: Int) {
+        val currentCart = _cart.value.toMutableMap()
+        currentCart[paintingId] = count
+        _cart.value = currentCart
     }
 
 

@@ -23,11 +23,8 @@ class PaintingsViewModelTest {
         IO = StandardTestDispatcher()
     )
 
-
-
     private lateinit var viewModel: MainActivityViewModel
     private val paintingsUseCases = PaintingsUseCases(FakeNetworkPaintingRepository())
-
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before

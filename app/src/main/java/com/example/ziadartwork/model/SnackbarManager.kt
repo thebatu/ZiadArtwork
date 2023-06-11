@@ -1,6 +1,7 @@
 package com.example.jetsnack.model
 
 import androidx.annotation.StringRes
+import com.google.android.datatransport.runtime.dagger.Provides
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

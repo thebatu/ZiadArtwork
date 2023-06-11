@@ -1,5 +1,6 @@
 package com.example.ziadartwork.di
 
+import com.example.jetsnack.model.SnackbarManager
 import com.example.ziadartwork.AppDispatchers
 import com.example.ziadartwork.model.PaintingsRepository
 import com.example.ziadartwork.usecases.PaintingsUseCases
@@ -26,17 +27,11 @@ object AppModule {
 
     }
 
-
     @Provides
     @Singleton
-    fun providesCartsRepository(): CartRepository {
-
+    fun provideSnackbarManager(): SnackbarManager {
+        return SnackbarManager
     }
 
-    @Provides
-    @Singleton
-    fun providesPaintingsUserCases(repo: PaintingsRepository): PaintingsUseCases {
-        return PaintingsUseCases(repo)
-    }
 
 }

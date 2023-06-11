@@ -3,7 +3,10 @@ package com.example.ziadartwork.ui
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateOffset
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -28,6 +32,10 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
 import com.example.ziadartwork.model.Painting
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -48,18 +56,20 @@ fun PaintingDetailSetup(
     id: String,
     navController: NavHostController,
 ) {
-    val viewModel: MainActivityViewModel = hiltViewModel()
+    val mainActivityViewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(id) {
         mutableStateOf<Painting?>(null)
     }
 
+    val cartViewModel: CartViewModel = hiltViewModel()
+
     LaunchedEffect(id) {
         val TAG = "PaintingDetailScreen"
         Log.d(TAG, "PaintingDetailScreen:  ")
-        painting = viewModel.getPainting(id)
+        painting = mainActivityViewModel.getPainting(id)
         imgModel2 = painting?.url ?: ""
     }
-    PaintingDetailScreen(painting, navController)
+    PaintingDetailScreen(painting, navController, cartViewModel)
 }
 
 private enum class PaintingSize {
@@ -74,6 +84,7 @@ private enum class PaintingZoom {
 fun PaintingDetailScreen(
     painting: Painting?,
     navController: NavHostController,
+    cartViewModel: CartViewModel
 ) {
     var paintingState by remember {
         mutableStateOf(PaintingSize.Small)
@@ -118,6 +129,12 @@ fun PaintingDetailScreen(
             PaintingSize.Large -> 600.dp
         }
     }
+
+    var cartClicked by remember { mutableStateOf(false) }
+    val spring = SpringSpec<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+    val cartScale: Float by animateFloatAsState(if (cartClicked) 1.8f else 1f, spring, label = "cart Scale")
+
+
 
     val paintingOffset by transition.animateOffset(transitionSpec = {
         if (this.initialState == PaintingSize.Small) {
@@ -165,12 +182,32 @@ fun PaintingDetailScreen(
                     Image(
                         painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
                         contentDescription = null,
+                        modifier = Modifier
+                            .scale(cartScale)
+                            .clickable(onClick = {
+                                Log.e("CartClick", "Cart clicked")
+                                cartClicked = true
+                                Log.d("CartClick", "Cart state: $cartClicked")
+                                cartViewModel.increasePaintingCount(paintingId = painting.id)
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    delay(200)
+                                    cartClicked = false
+
+                                }
+
+
+                            })
+
                     )
                 }
             }
 
         }
     }
+}
+
+fun nimateCart(animatedVisibilityScope: AnimatedVisibilityScope) {
+    TODO("Not yet implemented")
 }
 
 @Composable
