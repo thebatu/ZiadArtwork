@@ -1,8 +1,6 @@
-package com.example.ziadartwork.model
+package com.example.ziadartwork.domain.repository
 
-import com.example.ziadartwork.Result
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface CartRepository {
     fun getCartContent(): Flow<MutableMap<String, Int>>

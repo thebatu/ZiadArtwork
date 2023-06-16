@@ -1,10 +1,11 @@
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.ui.ui.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.ziadartwork.R
+import com.example.ziadartwork.ui.rememberWindowSizeClass
 import com.example.ziadartwork.ui.theme.ZiadArtworkTheme
+import com.example.ziadartwork.ui.ui.composables.CompatUI
 import dagger.hilt.android.AndroidEntryPoint
 
     
@@ -14,7 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         // Switch to AppTheme for displaying the activity
-        setTheme(R.style.AppTheme)
+//        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -26,13 +27,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-//@Preview(showBackground = true)
-//@Composable
-//fun DefaultPreview() {
-//    val windowSize = rememberWindowSizeClass()
-//    ZiadArtworkTheme {
-//        ZiadApp(windowSize)
-//    }
-//}
-//

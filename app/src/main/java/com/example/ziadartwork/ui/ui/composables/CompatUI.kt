@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalAnimationApi::class)
 
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.ui.ui.composables
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
@@ -11,6 +11,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.example.jetnews.navigation.Destination
+import com.example.ziadartwork.ui.WindowSize
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -34,8 +35,6 @@ fun CompatUI(
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
                             launchSingleTop = true
                             // Restore state when reselecting a previously selected item
                             restoreState = true

@@ -1,14 +1,13 @@
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.ui.viewmodels
 
 import WhileUiSubscribed
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.ziadartwork.AppDispatchers
-import com.example.ziadartwork.Result
-import com.example.ziadartwork.model.Painting
-import com.example.ziadartwork.usecases.PaintingsUseCases
+import com.example.ziadartwork.di.AppDispatchers
+import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.domain.usecases.PaintingsUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
@@ -41,7 +40,7 @@ class MainActivityViewModel @Inject constructor(
             }
         }
             .onCompletion {
-                Log.d(TAG, "COMPLETEEEEE: ")
+                Log.d(TAG, "Fetching paintings complete")
             }.shareIn(
                 scope = viewModelScope,
                 started = WhileUiSubscribed,

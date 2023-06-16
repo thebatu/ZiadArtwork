@@ -1,27 +1,24 @@
-package com.example.ziadartwork.model
+package com.example.ziadartwork.data.repositoryImpl
 
+import com.example.ziadartwork.domain.repository.CartDataStore
 import android.util.Log
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.intPreferencesKey
+import com.example.ziadartwork.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
 class CartRepositoryImpl @Inject constructor(
-    private val cartDataStorePreferences: DataStore<Preferences>
+    private val cartDataStore: CartDataStore
 ): CartRepository {
-    val TAG = "CartRepositoryImpl"
+    private val TAG = "CartRepositoryImpl"
 
     override fun getCartContent(): Flow<MutableMap<String, Int>> {
-        return cartDataStorePreferences.data
+        return cartDataStore.getCartContent()
             .catch { exception ->
+                Log.e(TAG, "Exception while getting cart content", exception)
                 if (exception is IOException) {
                     emit(emptyPreferences())
                 } else {
@@ -43,14 +40,8 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     override suspend fun addToCart(paintingId: String) {
-        cartDataStorePreferences.edit { preferences ->
-            val currentCount = preferences[intPreferencesKey(paintingId)] ?: 0
-            preferences[intPreferencesKey(paintingId)] = currentCount + 1
-            Log.d(TAG, "addToCart: Item Added")
-        }
-        
+        cartDataStore.addToCart(paintingId)
+        Log.d(TAG, "addToCart: Item Added $paintingId")
     }
-
-
-
+        
 }

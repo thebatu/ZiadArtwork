@@ -1,16 +1,14 @@
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetsnack.model.SnackbarManager
-import com.example.ziadartwork.model.CartRepository
+import com.example.ziadartwork.domain.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -29,7 +27,6 @@ class CartViewModel @Inject constructor(
                 Log.d("MyTag", "Cart content: $cartContent")
             }
         }
-
     }
 
     fun increasePaintingCount(paintingId: String) {

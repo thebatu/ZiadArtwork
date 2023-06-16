@@ -1,6 +1,7 @@
-package com.example.ziadartwork.model
+package com.example.ziadartwork.domain.repository
 
-import com.example.ziadartwork.Result
+import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.ui.viewmodels.Result
 import kotlinx.coroutines.flow.Flow
 
 

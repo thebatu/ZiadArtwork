@@ -1,28 +1,24 @@
 package com.example.ziadartwork
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStoreFile
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
-import com.example.ziadartwork.model.CartRepository
-import com.example.ziadartwork.model.CartRepositoryImpl
+import com.example.ziadartwork.domain.repository.CartRepository
+import com.example.ziadartwork.data.repositoryImpl.CartRepositoryImpl
+import com.example.ziadartwork.domain.repository.CartDataStore
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.test.setMain
@@ -47,8 +43,9 @@ class CartRepoTest() {
             produceFile =
             { testContext.preferencesDataStoreFile(TEST_DATASTORE_NAME) }
         )
-    private val repository: CartRepository =
-        CartRepositoryImpl(testDataStore)
+
+    private val cartDataStore: CartDataStore = TestCartDataStore()
+    private val repository: CartRepository = CartRepositoryImpl(cartDataStore)
 
     @Before
     fun setup() {
@@ -60,7 +57,6 @@ class CartRepoTest() {
         repository.addToCart("33333")
         val cartContent = repository.getCartContent().first()
         assertEquals(1, cartContent["33333"])
-
     }
 
     @Test

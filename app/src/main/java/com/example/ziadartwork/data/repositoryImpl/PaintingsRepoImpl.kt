@@ -1,7 +1,9 @@
-package com.example.ziadartwork.model
+package com.example.ziadartwork.data.repositoryImpl
 
 import android.util.Log
-import com.example.ziadartwork.Result
+import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.domain.repository.PaintingsRepository
+import com.example.ziadartwork.ui.viewmodels.Result
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -21,12 +23,10 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
     private val paintingRef: CollectionReference = Firebase.firestore.collection("paintings")
 
     companion object {
-        public val TAG = PaintingsRepoImpl::class.simpleName
-
+        val TAG = PaintingsRepoImpl::class.simpleName
     }
 
     private var paintingsList: MutableList<Painting> = mutableListOf<Painting>()
-
     override fun getAllPaintings(): Flow<Result<List<Painting>>> = callbackFlow {
 
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->

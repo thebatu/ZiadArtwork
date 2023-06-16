@@ -1,10 +1,8 @@
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.ui.ui.composables
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateOffset
@@ -14,6 +12,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +30,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
-import com.example.ziadartwork.model.Painting
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.ui.viewmodels.CartViewModel
+import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -48,7 +45,7 @@ lateinit var imgModel2: String
 @Preview(showBackground = true)
 @Composable
 fun PaintingDetailScreenPreview() {
-//    PaintingDetailScreen2("111")
+//PaintingDetailScreen2("111")
 }
 
 @Composable
@@ -56,29 +53,20 @@ fun PaintingDetailSetup(
     id: String,
     navController: NavHostController,
 ) {
+
     val mainActivityViewModel: MainActivityViewModel = hiltViewModel()
+    val cartViewModel: CartViewModel = hiltViewModel()
     var painting by remember(id) {
         mutableStateOf<Painting?>(null)
     }
 
-    val cartViewModel: CartViewModel = hiltViewModel()
-
     LaunchedEffect(id) {
-        val TAG = "PaintingDetailScreen"
-        Log.d(TAG, "PaintingDetailScreen:  ")
         painting = mainActivityViewModel.getPainting(id)
         imgModel2 = painting?.url ?: ""
     }
     PaintingDetailScreen(painting, navController, cartViewModel)
 }
 
-private enum class PaintingSize {
-    Small, Large
-}
-
-private enum class PaintingZoom {
-    Small, Large
-}
 
 @Composable
 fun PaintingDetailScreen(
@@ -111,7 +99,7 @@ fun PaintingDetailScreen(
         }
     }
 
-    val toggleLargeImgVisibility: () -> Unit = {
+    val togglePaintingWhileLargeVisibility: () -> Unit = {
         if (paintingState == PaintingSize.Small) {
             paintingState = PaintingSize.Large
             paintingLarge()
@@ -121,20 +109,21 @@ fun PaintingDetailScreen(
         }
     }
 
-    val transition = updateTransition(targetState = paintingState, label = "transition")
+    //Cart related variables and anim
+    var cartClicked by remember { mutableStateOf(false) }
+    val cartScale: Float by animateFloatAsState(
+        if (cartClicked) 1.6f else 1f,
+        animationSpec = tween(durationMillis = 400),
+        label = "cart Scale"
+    )
 
+    val transition = updateTransition(targetState = paintingState, label = "transition")
     val paintingSize by transition.animateDp(label = "painting Size Transition") {
         when (it) {
             PaintingSize.Small -> 400.dp
             PaintingSize.Large -> 600.dp
         }
     }
-
-    var cartClicked by remember { mutableStateOf(false) }
-    val spring = SpringSpec<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
-    val cartScale: Float by animateFloatAsState(if (cartClicked) 1.8f else 1f, spring, label = "cart Scale")
-
-
 
     val paintingOffset by transition.animateOffset(transitionSpec = {
         if (this.initialState == PaintingSize.Small) {
@@ -160,54 +149,75 @@ fun PaintingDetailScreen(
                     .offset(paintingOffset.x.dp, paintingOffset.y.dp)
                     .size(size = paintingSize)
                     .padding(8.dp),
-                resizeImg = toggleLargeImgVisibility,
+                resizeImg = togglePaintingWhileLargeVisibility,
                 goBack = popBackStack,
                 paintingLarge = paintingLarge,
                 paintingSmall = paintingSmall,
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
 
+            AnimatedVisibility(
+                visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally()
             ) {
-                AnimatedVisibility(
-                    visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-
-                    Image(
-                        painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
-                        contentDescription = null,
+                    Text(
+                        text = painting.name,
                         modifier = Modifier
-                            .scale(cartScale)
-                            .clickable(onClick = {
-                                Log.e("CartClick", "Cart clicked")
-                                cartClicked = true
-                                Log.d("CartClick", "Cart state: $cartClicked")
-                                cartViewModel.increasePaintingCount(paintingId = painting.id)
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    delay(200)
-                                    cartClicked = false
-
-                                }
-
-
-                            })
-
+                            .weight(1f)
+                            .padding(8.dp)
                     )
+
+                    Text(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                        //TODO add a size to the painting model and replace static var
+                        text = "65 x 56 cm",
+
+                        )
+
+                    Spacer(Modifier.weight(1f))
+
+                    AnimatedVisibility(
+                        visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                        enter = fadeIn() + expandHorizontally(),
+                        exit = fadeOut() + shrinkHorizontally()
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .scale(cartScale)
+                                .padding(8.dp)
+                                .clickable(
+                                    onClick = {
+                                        Log.e("CartClick", "Cart clicked")
+                                        cartClicked = true
+                                        Log.d("CartClick", "Cart state: $cartClicked")
+                                        cartViewModel.increasePaintingCount(paintingId = painting.id)
+                                        cartClicked = false
+                                    }
+                                ),
+                            painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
 
+            AnimatedVisibility(
+                visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally()
+            ) {
+                Text(modifier = Modifier.padding(8.dp), text = painting.description)
+            }
         }
     }
-}
-
-fun nimateCart(animatedVisibilityScope: AnimatedVisibilityScope) {
-    TODO("Not yet implemented")
 }
 
 @Composable
@@ -295,4 +305,12 @@ fun ZoomablePaintingImg(
 
 fun zoomedImage(zoom: Float, offsetX: Float, offsetY: Float, angle: Float): Boolean {
     return (zoom != 1f || offsetX != 0f || offsetY != 0f || angle != 0f)
+}
+
+private enum class PaintingSize {
+    Small, Large
+}
+
+private enum class PaintingZoom {
+    Small, Large
 }

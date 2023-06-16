@@ -1,7 +1,7 @@
 package com.example.ziadartwork.fake
 
-import com.example.ziadartwork.Result
-import com.example.ziadartwork.model.Painting
+import com.example.ziadartwork.ui.viewmodels.Result
+import com.example.ziadartwork.data.model.Painting
 
 object FakeDataSource {
     val paintingsMock = Result.Success(

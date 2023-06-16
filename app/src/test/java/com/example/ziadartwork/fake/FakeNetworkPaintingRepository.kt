@@ -1,7 +1,7 @@
-import com.example.ziadartwork.Result
+import com.example.ziadartwork.ui.viewmodels.Result
 import com.example.ziadartwork.fake.FakeDataSource
-import com.example.ziadartwork.model.Painting
-import com.example.ziadartwork.model.PaintingsRepository
+import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.domain.repository.PaintingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 

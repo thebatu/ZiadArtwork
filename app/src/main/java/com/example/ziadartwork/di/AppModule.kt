@@ -1,14 +1,12 @@
 package com.example.ziadartwork.di
 
 import com.example.jetsnack.model.SnackbarManager
-import com.example.ziadartwork.AppDispatchers
-import com.example.ziadartwork.model.PaintingsRepository
-import com.example.ziadartwork.usecases.PaintingsUseCases
+import com.example.ziadartwork.domain.repository.PaintingsRepository
+import com.example.ziadartwork.domain.usecases.PaintingsUseCases
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import javax.inject.Singleton
 
 @Module

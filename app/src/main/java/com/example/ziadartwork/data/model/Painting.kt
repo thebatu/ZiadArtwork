@@ -1,4 +1,4 @@
-package com.example.ziadartwork.model
+package com.example.ziadartwork.data.model
 
 import com.google.firebase.firestore.DocumentId
 
