@@ -46,7 +46,7 @@ class PaintingsViewModelTest {
 
 //            testDispatcher.testDispatcher.scheduler.advanceUntilIdle()
 
-            val data = paintingsUseCases.invoke()
+            val data = paintingsUseCases.getAllPaintings()
 
             val value = viewModel.paintingsState.value
             val s = ""

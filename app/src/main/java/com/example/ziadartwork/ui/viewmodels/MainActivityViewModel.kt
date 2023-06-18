@@ -30,7 +30,7 @@ class MainActivityViewModel @Inject constructor(
         .map { result ->
             when (result) {
                 is Result.Error -> PaintingsUiState.Error(result.exception)
-                Result.Loading -> PaintingsUiState.Loading
+                is Result.Loading -> PaintingsUiState.Loading
 
                 is Result.Success -> {
                     paintingsList = result.data
