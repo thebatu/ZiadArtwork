@@ -29,31 +29,31 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun increasePaintingCount(paintingId: String) {
+    fun addPaintingToCart(paintingId: String) {
         viewModelScope.launch {
             cartRepository.addToCart(paintingId)
         }
             val currentCount: Map<String, Int> = _cart.value
-            updatePaintingCount(paintingId, currentCount.size + 1)
+            updateCartWithNewCount(paintingId, currentCount.size + 1)
     }
 
-    fun decreaseSnackCount(paintingId: String) {
-            val currentCount = _cart.value.size
-            if (currentCount == 1) {
-                removeSnack(paintingId)
+    fun decreasePaintingCount(paintingId: String) {
+            val totalItemCount = _cart.value.size
+            if (totalItemCount == 1) {
+                removePaintingFromCart(paintingId)
             } else {
                 // update quantity in cart
-                updatePaintingCount(paintingId, currentCount - 1)
+                updateCartWithNewCount(paintingId, totalItemCount - 1)
             }
         }
 
-    private fun removeSnack(paintingId: String) {
+    private fun removePaintingFromCart(paintingId: String) {
         val currentCart = _cart.value.toMutableMap()
         currentCart.remove(paintingId)
         _cart.value = currentCart
     }
 
-    private fun updatePaintingCount(paintingId: String, count: Int) {
+    private fun updateCartWithNewCount(paintingId: String, count: Int) {
         val currentCart = _cart.value.toMutableMap()
         currentCart[paintingId] = count
         _cart.value = currentCart

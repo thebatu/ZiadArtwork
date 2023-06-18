@@ -29,9 +29,9 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.jetnews.navigation.Destination
 import com.example.ziadartwork.R
-import com.example.ziadartwork.ui.viewmodels.Result
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
+import com.example.ziadartwork.ui.viewmodels.Result.*
 
 @Composable
 fun PaintingsHomeScreen(
@@ -39,19 +39,19 @@ fun PaintingsHomeScreen(
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
     val homeScreenState by remember(viewModel) {
-        viewModel.fetchPaintings
-    }.collectAsStateWithLifecycle(Result.Loading)
+        viewModel.fetchPaintings()
+    }.collectAsStateWithLifecycle(initialValue = MainActivityViewModel.PaintingsUiState.Loading)
 
     when (homeScreenState) {
-        is Result.Success ->
-            (homeScreenState as Result.Success<List<Painting>>).data?.let {
+        is MainActivityViewModel.PaintingsUiState.Success ->
+            (homeScreenState as Success<List<Painting>>).data?.let {
                 PaintingsItemList(
                     paintingsList = it,
                     onPaintingSelected = onPaintingSelected,
                 )
             }
-        is Result.Error -> ErrorScreen(retryAction = { })
-        is Result.Loading -> LoadingScreen()
+        is MainActivityViewModel.PaintingsUiState.Error  -> ErrorScreen(retryAction = { })
+        is MainActivityViewModel.PaintingsUiState.Loading -> LoadingScreen()
     }
 }
 

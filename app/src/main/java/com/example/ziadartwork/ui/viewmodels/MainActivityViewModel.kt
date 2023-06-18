@@ -21,31 +21,29 @@ class MainActivityViewModel @Inject constructor(
 
     private val TAG = MainActivityViewModel::class.simpleName
 
-    private val _isLoading = MutableStateFlow(false)
     private val _paintingsState = MutableStateFlow<Result<List<Painting>>>(Result.Loading)
     val paintingsState: StateFlow<Result<List<Painting>>> = _paintingsState.asStateFlow()
-    var paintingsList = emptyList<Painting>()
 
-    val fetchPaintings: Flow<Result<List<Painting>>> =
-        paintingsUseCase.invoke().onEach {
-            Log.d(TAG, it.toString())
-            _paintingsState.value = it
-            paintingsList = when (it) {
-                is Result.Error -> TODO()
-                Result.Loading -> TODO()
+    private var paintingsList = emptyList<Painting>()
+
+    fun fetchPaintings(): Flow<PaintingsUiState> = paintingsUseCase.getAllPaintings()
+        .map { result ->
+            when (result) {
+                is Result.Error -> PaintingsUiState.Error(result.exception)
+                Result.Loading -> PaintingsUiState.Loading
+
                 is Result.Success -> {
-                    Log.d(TAG, paintingsList.toString())
-                    it.data
+                    paintingsList = result.data
+                    PaintingsUiState.Success(paintingsList)
                 }
             }
         }
-            .onCompletion {
-                Log.d(TAG, "Fetching paintings complete")
-            }.shareIn(
-                scope = viewModelScope,
-                started = WhileUiSubscribed,
-                replay = 1,
-            )
+        .onCompletion { Log.d(TAG, "Fetching paintings complete") }
+        .shareIn(
+            scope = viewModelScope,
+            started = WhileUiSubscribed,
+            replay = 1,
+        )
 
     suspend fun getPainting(id: String): Painting? {
         val result = paintingsUseCase.getPainting(id)
@@ -61,12 +59,4 @@ class MainActivityViewModel @Inject constructor(
         class Success(result: List<Painting>) : PaintingsUiState()
     }
 
-    private fun getPaintings(): List<Painting> {
-        val result = _paintingsState.value
-        Log.d(TAG, "getPaintings() called, paintingsState = $result")
-        return when (result) {
-            is Result.Success -> result.data
-            else -> emptyList()
-        }
-    }
 }

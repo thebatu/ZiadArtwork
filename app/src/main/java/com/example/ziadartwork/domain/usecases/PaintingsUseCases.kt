@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class PaintingsUseCases @Inject constructor(private val repo: PaintingsRepository) {
 
-    operator fun invoke(): Flow<Result<List<Painting>>> = repo.getAllPaintings()
+    fun getAllPaintings(): Flow<Result<List<Painting>>> = repo.getAllPaintings()
     suspend fun getPainting(id: String): Result<Painting> = repo.getPainting(id)
 
 }

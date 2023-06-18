@@ -27,6 +27,7 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
     }
 
     private var paintingsList: MutableList<Painting> = mutableListOf<Painting>()
+
     override fun getAllPaintings(): Flow<Result<List<Painting>>> = callbackFlow {
 
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->
@@ -37,7 +38,7 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
                 paintingsList.addAll(paintings)
                 Result.Success(paintings)
             } else {
-                Result.Error(e)
+                Result.Error(e ?: Exception("Unknown error occurred"))
             }
             trySend(paintingsResponse).isSuccess
         }

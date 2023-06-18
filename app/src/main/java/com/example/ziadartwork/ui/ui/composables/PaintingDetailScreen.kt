@@ -39,9 +39,6 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 
-//18807
-lateinit var imgModel2: String
-
 @Preview(showBackground = true)
 @Composable
 fun PaintingDetailScreenPreview() {
@@ -54,70 +51,69 @@ fun PaintingDetailSetup(
     navController: NavHostController,
 ) {
 
-    val mainActivityViewModel: MainActivityViewModel = hiltViewModel()
-    val cartViewModel: CartViewModel = hiltViewModel()
+    val paintingViewModel: MainActivityViewModel = hiltViewModel()
+    val shoppingCartViewModel: CartViewModel = hiltViewModel()
     var painting by remember(id) {
         mutableStateOf<Painting?>(null)
     }
 
     LaunchedEffect(id) {
-        painting = mainActivityViewModel.getPainting(id)
-        imgModel2 = painting?.url ?: ""
+        painting = paintingViewModel.getPainting(id)
     }
-    PaintingDetailScreen(painting, navController, cartViewModel)
-}
 
+    PaintingDetailScreen(painting, navController, shoppingCartViewModel)
+}
 
 @Composable
 fun PaintingDetailScreen(
     painting: Painting?,
     navController: NavHostController,
-    cartViewModel: CartViewModel
+    shoppingCartViewModel: CartViewModel
 ) {
-    var paintingState by remember {
+    var paintingSizeState by remember {
         mutableStateOf(PaintingSize.Small)
     }
 
-    var paintingZoom by remember {
-        mutableStateOf(PaintingZoom.Small)
+    var paintingZoomState by remember {
+        mutableStateOf(PaintingZoom.NotZoomed)
     }
 
-    val paintingLarge: () -> Unit = {
-        paintingZoom = PaintingZoom.Large
+    val zoomInPainting: () -> Unit = {
+        paintingZoomState = PaintingZoom.Zoomed
     }
 
-    val paintingSmall: () -> Unit = {
-        paintingZoom = PaintingZoom.Small
+    val zoomOutPainting: () -> Unit = {
+        paintingZoomState = PaintingZoom.NotZoomed
     }
 
     val popBackStack: () -> Unit = {
-        if (paintingState == PaintingSize.Large) {
-            paintingState = PaintingSize.Small
-            paintingSmall()
+        if (paintingSizeState == PaintingSize.Large) {
+            paintingSizeState = PaintingSize.Small
+            zoomOutPainting()
         } else {
             navController.popBackStack()
         }
     }
 
-    val togglePaintingWhileLargeVisibility: () -> Unit = {
-        if (paintingState == PaintingSize.Small) {
-            paintingState = PaintingSize.Large
-            paintingLarge()
+    val togglePaintingSize: () -> Unit = {
+        if (paintingSizeState == PaintingSize.Small) {
+            paintingSizeState = PaintingSize.Large
+            zoomInPainting()
         } else {
-            paintingState = PaintingSize.Small
-            paintingSmall()
+            paintingSizeState = PaintingSize.Small
+            zoomOutPainting()
         }
     }
 
     //Cart related variables and anim
-    var cartClicked by remember { mutableStateOf(false) }
+    var isCartClicked by remember { mutableStateOf(false) }
     val cartScale: Float by animateFloatAsState(
-        if (cartClicked) 1.6f else 1f,
+        if (isCartClicked) 1.6f else 1f,
         animationSpec = tween(durationMillis = 400),
         label = "cart Scale"
     )
 
-    val transition = updateTransition(targetState = paintingState, label = "transition")
+    val transition = updateTransition(targetState = paintingSizeState, label = "transition")
     val paintingSize by transition.animateDp(label = "painting Size Transition") {
         when (it) {
             PaintingSize.Small -> 400.dp
@@ -144,19 +140,19 @@ fun PaintingDetailScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             ZoomablePaintingImg(
-                model = painting.url,
+                imageUrl = painting.url,
                 modifier = Modifier
                     .offset(paintingOffset.x.dp, paintingOffset.y.dp)
                     .size(size = paintingSize)
                     .padding(8.dp),
-                resizeImg = togglePaintingWhileLargeVisibility,
+                resizeImg = togglePaintingSize,
                 goBack = popBackStack,
-                paintingLarge = paintingLarge,
-                paintingSmall = paintingSmall,
+                paintingLarge = zoomInPainting,
+                paintingSmall = zoomOutPainting,
             )
 
             AnimatedVisibility(
-                visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                visible = paintingZoomState == PaintingZoom.NotZoomed && paintingSizeState == PaintingSize.Small,
                 enter = fadeIn() + expandHorizontally(),
                 exit = fadeOut() + shrinkHorizontally()
             ) {
@@ -185,7 +181,7 @@ fun PaintingDetailScreen(
                     Spacer(Modifier.weight(1f))
 
                     AnimatedVisibility(
-                        visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                        visible = paintingZoomState == PaintingZoom.NotZoomed && paintingSizeState == PaintingSize.Small,
                         enter = fadeIn() + expandHorizontally(),
                         exit = fadeOut() + shrinkHorizontally()
                     ) {
@@ -195,11 +191,10 @@ fun PaintingDetailScreen(
                                 .padding(8.dp)
                                 .clickable(
                                     onClick = {
-                                        Log.e("CartClick", "Cart clicked")
-                                        cartClicked = true
-                                        Log.d("CartClick", "Cart state: $cartClicked")
-                                        cartViewModel.increasePaintingCount(paintingId = painting.id)
-                                        cartClicked = false
+                                        isCartClicked = true
+                                        Log.d("CartClick", "Cart state: $isCartClicked")
+                                        shoppingCartViewModel.addPaintingToCart(paintingId = painting.id)
+                                        isCartClicked = false
                                     }
                                 ),
                             painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
@@ -210,7 +205,7 @@ fun PaintingDetailScreen(
             }
 
             AnimatedVisibility(
-                visible = paintingZoom == PaintingZoom.Small && paintingState == PaintingSize.Small,
+                visible = paintingZoomState == PaintingZoom.NotZoomed && paintingSizeState == PaintingSize.Small,
                 enter = fadeIn() + expandHorizontally(),
                 exit = fadeOut() + shrinkHorizontally()
             ) {
@@ -222,78 +217,78 @@ fun PaintingDetailScreen(
 
 @Composable
 fun ZoomablePaintingImg(
-    model: String,
+    imageUrl: String,
     modifier: Modifier,
     resizeImg: () -> Unit,
     goBack: () -> Unit,
     paintingLarge: () -> Unit,
     paintingSmall: () -> Unit
 ) {
-    var angle by remember { mutableStateOf(0f) }
-    var zoom by remember { mutableStateOf(1f) }
-    var offsetX by remember { mutableStateOf(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
+    var imageRotationAngle by remember { mutableStateOf(0f) }
+    var imageZoomLevel by remember { mutableStateOf(1f) }
+    var imageOffsetX by remember { mutableStateOf(0f) }
+    var imageOffsetY by remember { mutableStateOf(0f) }
 
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp.value
     val screenHeight = configuration.screenHeightDp.dp.value
 
-    fun resetImgZoom() {
-        zoom = 1f
-        offsetX = 0f
-        offsetY = 0f
-        angle = 0f
+    fun resetImgAttributes() {
+        imageZoomLevel = 1f
+        imageOffsetX = 0f
+        imageOffsetY = 0f
+        imageRotationAngle = 0f
         paintingSmall()
     }
 
     BackHandler(enabled = true) {
-        if (zoomedImage(zoom, offsetX, offsetY, angle)) {
-            resetImgZoom()
+        if (isImageZoomed(imageZoomLevel, imageOffsetX, imageOffsetY, imageRotationAngle)) {
+            resetImgAttributes()
         } else {
             goBack()
         }
     }
 
     AsyncImage(
-        model,
+        imageUrl,
         contentDescription = "Painting Detail",
         contentScale = ContentScale.Crop,
         modifier = modifier
-            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .offset { IntOffset(imageOffsetX.roundToInt(), imageOffsetY.roundToInt()) }
             .graphicsLayer(
-                scaleX = zoom,
-                scaleY = zoom,
-                rotationZ = angle,
+                scaleX = imageZoomLevel,
+                scaleY = imageZoomLevel,
+                rotationZ = imageRotationAngle,
             )
             .pointerInput(Unit) {
                 detectTransformGestures(
                     onGesture = { _, pan, gestureZoom, _ ->
-                        zoom = (zoom * gestureZoom).coerceIn(1F..8F)
-                        if (zoom > 1) {
+                        imageZoomLevel = (imageZoomLevel * gestureZoom).coerceIn(1F..8F)
+                        if (imageZoomLevel > 1) {
                             paintingLarge()
-                            val x = (pan.x * zoom)
-                            val y = (pan.y * zoom)
-                            val angleRad = angle * PI / 180.0
+                            val x = (pan.x * imageZoomLevel)
+                            val y = (pan.y * imageZoomLevel)
+                            val angleRad = imageRotationAngle * PI / 180.0
 
-                            offsetX =
-                                (offsetX + (x * cos(angleRad) - y * sin(angleRad)).toFloat()).coerceIn(
-                                    -(screenWidth * zoom)..(screenWidth * zoom),
+                            imageOffsetX =
+                                (imageOffsetX + (x * cos(angleRad) - y * sin(angleRad)).toFloat()).coerceIn(
+                                    -(screenWidth * imageZoomLevel)..(screenWidth * imageZoomLevel),
                                 )
-                            offsetY =
-                                (offsetY + (x * sin(angleRad) + y * cos(angleRad)).toFloat()).coerceIn(
-                                    -(screenHeight * zoom)..(screenHeight * zoom),
+                            imageOffsetY =
+                                (imageOffsetY + (x * sin(angleRad) + y * cos(angleRad)).toFloat()).coerceIn(
+                                    -(screenHeight * imageZoomLevel)..(screenHeight * imageZoomLevel),
                                 )
                         } else {
-                            offsetX = 0F
-                            offsetY = 0F
+                            imageOffsetX = 0F
+                            imageOffsetY = 0F
                         }
                     },
                 )
             }
             .clickable(
                 onClick = {
-                    if (zoomedImage(zoom, offsetX, offsetY, angle)) {
-                        resetImgZoom()
+                    if (isImageZoomed(imageZoomLevel, imageOffsetX, imageOffsetY, imageRotationAngle)) {
+                        resetImgAttributes()
                     } else {
                         resizeImg()
                     }
@@ -303,7 +298,7 @@ fun ZoomablePaintingImg(
     )
 }
 
-fun zoomedImage(zoom: Float, offsetX: Float, offsetY: Float, angle: Float): Boolean {
+fun isImageZoomed(zoom: Float, offsetX: Float, offsetY: Float, angle: Float): Boolean {
     return (zoom != 1f || offsetX != 0f || offsetY != 0f || angle != 0f)
 }
 
@@ -312,5 +307,5 @@ private enum class PaintingSize {
 }
 
 private enum class PaintingZoom {
-    Small, Large
+    NotZoomed, Zoomed
 }
