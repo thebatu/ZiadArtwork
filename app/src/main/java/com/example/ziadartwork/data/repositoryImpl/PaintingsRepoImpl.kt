@@ -20,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 @ExperimentalCoroutinesApi
 class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
+    //TODO extract paintingRef and replace static strings
     private val paintingRef: CollectionReference = Firebase.firestore.collection("paintings")
 
     companion object {
@@ -33,7 +34,7 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->
             val paintingsResponse = if (snapshot != null) {
                 val paintings: List<Painting> = snapshot.toObjects<Painting>()
-                Log.d(TAG, "getAllPaintings: ${paintings.toString()}")
+                Log.d(TAG, "getAllPaintings: ${paintings}")
                 paintingsList.clear()
                 paintingsList.addAll(paintings)
                 Result.Success(paintings)

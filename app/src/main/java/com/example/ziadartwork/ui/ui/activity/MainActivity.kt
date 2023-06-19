@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.example.ziadartwork.ui.rememberWindowSizeClass
-import com.example.ziadartwork.ui.theme.ZiadArtworkTheme
+import com.example.ziadartwork.theme.ZiadArtworkTheme
 import com.example.ziadartwork.ui.ui.composables.CompatUI
 import dagger.hilt.android.AndroidEntryPoint
 

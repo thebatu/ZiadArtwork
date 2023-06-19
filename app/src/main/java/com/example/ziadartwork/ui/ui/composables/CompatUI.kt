@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.jetnews.navigation.Destination
+import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.ui.WindowSize
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable

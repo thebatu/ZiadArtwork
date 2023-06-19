@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.jetnews.navigation.Destination
+import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel

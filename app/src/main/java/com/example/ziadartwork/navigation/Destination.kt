@@ -1,4 +1,4 @@
-package com.example.jetnews.navigation
+package com.example.ziadartwork.navigation
 
 sealed class Destination(val route: String) {
     object MainDestination : Destination("main_screen")

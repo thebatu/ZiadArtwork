@@ -64,6 +64,7 @@ fun PaintingDetailSetup(
     PaintingDetailScreen(painting, navController, shoppingCartViewModel)
 }
 
+// TODO method too long brake it down into smaller chunks.
 @Composable
 fun PaintingDetailScreen(
     painting: Painting?,
@@ -129,6 +130,7 @@ fun PaintingDetailScreen(
         }
     }, label = "painting offset") { animated ->
         if (animated == PaintingSize.Large) {
+            //TODO this will not work on all screen devices, initial offset should be set from the outside
             Offset(0f, 100f)
         } else {
             Offset(0f, 0f)
