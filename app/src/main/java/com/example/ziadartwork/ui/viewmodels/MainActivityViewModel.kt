@@ -30,6 +30,7 @@ class MainActivityViewModel @Inject constructor(
         .map { result ->
             when (result) {
                 is Result.Error -> PaintingsUiState.Error(result.exception)
+
                 is Result.Loading -> PaintingsUiState.Loading
 
                 is Result.Success -> {
@@ -46,8 +47,7 @@ class MainActivityViewModel @Inject constructor(
         )
 
     suspend fun getPainting(id: String): Painting? {
-        val result = paintingsUseCase.getPainting(id)
-        return when (result) {
+        return when (val result = paintingsUseCase.getPainting(id)) {
             is Result.Success -> result.data
             else -> null
         }
@@ -55,8 +55,8 @@ class MainActivityViewModel @Inject constructor(
 
     sealed class PaintingsUiState {
         object Loading : PaintingsUiState()
-        class Error(e: Throwable) : PaintingsUiState()
-        class Success(result: List<Painting>) : PaintingsUiState()
+        data class Error(val e: Throwable) : PaintingsUiState()
+        data class Success(val result: List<Painting>) : PaintingsUiState()
     }
 
 }

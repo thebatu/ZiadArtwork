@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetsnack.model.SnackbarManager
 import com.example.ziadartwork.domain.repository.CartRepository
+import com.example.ziadartwork.domain.usecases.CartUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,14 +16,14 @@ import javax.inject.Inject
 @HiltViewModel
 class CartViewModel @Inject constructor(
     snackbarManager: SnackbarManager,
-    private val cartRepository: CartRepository
+    private val cartUseCases: CartUseCases
 ) : ViewModel() {
     private val _cart = MutableStateFlow<Map<String, Int>>(emptyMap())
     val cartState: StateFlow<Map<String, Int>> = _cart.asStateFlow()
 
     init {
         viewModelScope.launch {
-            cartRepository.getCartContent().collect { cartContent ->
+            cartUseCases.getCartContent().collect { cartContent ->
                 // Handle the cartContent here
                 Log.d("MyTag", "Cart content: $cartContent")
             }
@@ -31,21 +32,21 @@ class CartViewModel @Inject constructor(
 
     fun addPaintingToCart(paintingId: String) {
         viewModelScope.launch {
-            cartRepository.addToCart(paintingId)
+            cartUseCases.addToCart(paintingId)
         }
-            val currentCount: Map<String, Int> = _cart.value
-            updateCartWithNewCount(paintingId, currentCount.size + 1)
+        val currentCount: Map<String, Int> = _cart.value
+        updateCartWithNewCount(paintingId, currentCount.size + 1)
     }
 
     fun decreasePaintingCount(paintingId: String) {
-            val totalItemCount = _cart.value.size
-            if (totalItemCount == 1) {
-                removePaintingFromCart(paintingId)
-            } else {
-                // update quantity in cart
-                updateCartWithNewCount(paintingId, totalItemCount - 1)
-            }
+        val totalItemCount = _cart.value.size
+        if (totalItemCount == 1) {
+            removePaintingFromCart(paintingId)
+        } else {
+            // update quantity in cart
+            updateCartWithNewCount(paintingId, totalItemCount - 1)
         }
+    }
 
     private fun removePaintingFromCart(paintingId: String) {
         val currentCart = _cart.value.toMutableMap()

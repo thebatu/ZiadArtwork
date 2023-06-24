@@ -31,7 +31,7 @@ import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
-import com.example.ziadartwork.ui.viewmodels.Result.*
+import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel.PaintingsUiState.*
 
 @Composable
 fun PaintingsHomeScreen(
@@ -40,18 +40,16 @@ fun PaintingsHomeScreen(
 ) {
     val homeScreenState by remember(viewModel) {
         viewModel.fetchPaintings()
-    }.collectAsStateWithLifecycle(initialValue = MainActivityViewModel.PaintingsUiState.Loading)
+    }.collectAsStateWithLifecycle(initialValue = Loading)
 
     when (homeScreenState) {
-        is MainActivityViewModel.PaintingsUiState.Success ->
-            (homeScreenState as Success<List<Painting>>).data?.let {
-                PaintingsItemList(
-                    paintingsList = it,
-                    onPaintingSelected = onPaintingSelected,
-                )
-            }
-        is MainActivityViewModel.PaintingsUiState.Error  -> ErrorScreen(retryAction = { })
-        is MainActivityViewModel.PaintingsUiState.Loading -> LoadingScreen()
+        is Success ->
+            PaintingsItemList(
+                paintingsList = (homeScreenState as Success).result,
+                onPaintingSelected = onPaintingSelected,
+            )
+        is Error  -> ErrorScreen(retryAction = { })
+        is Loading -> LoadingScreen()
     }
 }
 

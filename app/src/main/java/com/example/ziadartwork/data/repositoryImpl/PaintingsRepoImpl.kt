@@ -13,14 +13,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 @ExperimentalCoroutinesApi
 class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
-    //TODO extract paintingRef and replace static strings
+    //TODO should depend on abstration and not paintingRef directly. Replace static strings
     private val paintingRef: CollectionReference = Firebase.firestore.collection("paintings")
 
     companion object {
@@ -54,23 +56,21 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
             Log.d(TAG, "getPainting: returned non-null result")
             return Result.Success(painting)
         }
-        return getPaintingFromNetwork(id).single()
-    }
 
-    private fun getPaintingFromNetwork(id: String): Flow<Result<Painting>> = callbackFlow {
-
-        val docRef = paintingRef.document(id)
-        val listenerRegistration = docRef.addSnapshotListener { snapshot, e ->
-            val painting = snapshot?.toObject<Painting>()
-            val paintingResponse = if (painting != null) {
-                Result.Success(painting)
+        return try {
+            val docSnapshot = paintingRef.document(id).get().await()
+            if (docSnapshot != null) {
+                val painting = docSnapshot.toObject<Painting>()
+                if (painting != null) {
+                    Result.Success(painting)
+                } else {
+                    Result.Error(Exception("Document found, but could not convert to Painting"))
+                }
             } else {
-                Result.Error(e ?: Exception("Painting not found"))
+                Result.Error(Exception("No document found"))
             }
-            trySend(paintingResponse)
-        }
-        awaitClose {
-            listenerRegistration.remove()
+        } catch (e: Exception) {
+            Result.Error(e)
         }
     }
 }
