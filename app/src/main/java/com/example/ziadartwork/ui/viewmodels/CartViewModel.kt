@@ -38,7 +38,7 @@ class CartViewModel @Inject constructor(
         updateCartWithNewCount(paintingId, currentCount.size + 1)
     }
 
-    fun decreasePaintingCount(paintingId: String) {
+    fun decreaseLocalPaintingCount(paintingId: String) {
         val totalItemCount = _cart.value.size
         if (totalItemCount == 1) {
             removePaintingFromCart(paintingId)
