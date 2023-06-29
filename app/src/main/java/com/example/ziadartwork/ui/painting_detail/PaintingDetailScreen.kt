@@ -1,6 +1,5 @@
-package com.example.ziadartwork.ui.ui.composables
+package com.example.ziadartwork.ui.painting_detail
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDp
@@ -54,8 +53,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
-import com.example.ziadartwork.ui.viewmodels.CartViewModel
-import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
+import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -145,7 +144,8 @@ fun PaintingDetailScreen(
     //TODO remove forceRecomposition for animation
     val forceRecompose = rememberUpdatedState(cartScale)
 
-    val sizeTransition = updateTransition(paintingState.size, label = "sizeTransition")
+    val sizeTransition =
+        updateTransition(targetState = paintingState.size, label = "sizeTransition")
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
             ImageSize.Small -> 400.dp
@@ -169,7 +169,7 @@ fun PaintingDetailScreen(
     }
 
 
-    var itemCount = 2
+    var currentPaintingCartItemCount = 2
 
     if (painting != null) {
         Column(
@@ -216,57 +216,45 @@ fun PaintingDetailScreen(
 
                     Spacer(Modifier.weight(1f))
 
-                    AnimatedVisibility(
-                        visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
-                        enter = fadeIn() + expandHorizontally(),
-                        exit = fadeOut() + shrinkHorizontally()
-                    ) {
-                        Box {
-                            Image(
-                                modifier = Modifier
-                                    .scale(forceRecompose.value)
-                                    .padding(8.dp)
-                                    .clickable(
-                                        onClick = {
-                                            isCartClicked = true
-                                            shoppingCartViewModel.addPaintingToCart(paintingId = painting.id)
-                                            scope.launch {
-                                                Log.d("CartClick", "Coroutine launched")
-                                                delay(400)
-                                                isCartClicked = false
-                                                Log.d("CartClick", "Coroutine ended")
-                                            }
+                    Box {
+                        Image(
+                            modifier = Modifier
+                                .scale(cartScale)
+                                .padding(8.dp)
+                                .clickable(
+                                    onClick = {
+                                        isCartClicked = true
+                                        shoppingCartViewModel.addPaintingToCart(paintingId = painting.id)
+                                        scope.launch {
+                                            delay(200) //needed for the cart animation
+                                            isCartClicked = false
                                         }
-                                    ),
-                                painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
-                                contentDescription = null,
+                                    }
+                                ),
+                            painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+                            contentDescription = null,
+                        )
+                        if (currentPaintingCartItemCount > 0) {
+                            Text(
+                                text = currentPaintingCartItemCount.toString(),
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .background(Color.Red, CircleShape)
+                                    .padding(horizontal = 4.dp)
                             )
-                            if (itemCount > 0) {
-                                Text(
-                                    text = itemCount.toString(),
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .background(Color.Red, CircleShape)
-                                        .padding(horizontal = 4.dp)
-                                )
-                            }
                         }
                     }
                 }
-            }
 
-            AnimatedVisibility(
-                visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
-                enter = fadeIn() + expandHorizontally(),
-                exit = fadeOut() + shrinkHorizontally()
-            ) {
                 Text(modifier = Modifier.padding(8.dp), text = painting.description)
             }
         }
+
     }
 }
+
 
 @Composable
 fun ZoomablePaintingImg(

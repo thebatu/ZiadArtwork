@@ -3,10 +3,10 @@ package com.example.ziadartwork
 import FakeNetworkPaintingRepository
 import androidx.lifecycle.SavedStateHandle
 import com.example.ziadartwork.di.AppDispatchers
-import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.rules.TestDispatcherRule
-import com.example.ziadartwork.ui.viewmodels.Result
+import com.example.ziadartwork.ui.Result
 import com.example.ziadartwork.domain.usecases.PaintingsUseCases
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher

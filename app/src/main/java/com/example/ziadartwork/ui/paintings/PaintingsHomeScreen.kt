@@ -1,4 +1,4 @@
-package com.example.ziadartwork.ui.ui.composables
+package com.example.ziadartwork.ui.paintings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -30,8 +30,7 @@ import coil.request.ImageRequest
 import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
-import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel
-import com.example.ziadartwork.ui.viewmodels.MainActivityViewModel.PaintingsUiState.*
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.*
 
 @Composable
 fun PaintingsHomeScreen(

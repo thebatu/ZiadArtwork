@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalAnimationApi::class)
 
-package com.example.ziadartwork.ui.ui.composables
+package com.example.ziadartwork.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
@@ -10,8 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.ziadartwork.navigation.Destination
-import com.example.ziadartwork.ui.WindowSize
+import com.example.ziadartwork.util.WindowSize
+import com.example.ziadartwork.ui.painting_detail.PaintingDetailSetup
+import com.example.ziadartwork.ui.paintings.PaintingsHomeScreen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController

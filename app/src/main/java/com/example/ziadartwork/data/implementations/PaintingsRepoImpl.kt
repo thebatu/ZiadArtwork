@@ -1,9 +1,9 @@
-package com.example.ziadartwork.data.repositoryImpl
+package com.example.ziadartwork.data.implementations
 
 import android.util.Log
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.domain.repository.PaintingsRepository
-import com.example.ziadartwork.ui.viewmodels.Result
+import com.example.ziadartwork.ui.Result
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
@@ -13,8 +13,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,18 +49,18 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
     }
 
     override suspend fun getPainting(id: String): Result<Painting> {
-        val painting = paintingsList.find { it.id == id }
-        if (painting != null) {
+        val localPainting = paintingsList.find { it.id == id }
+        if (localPainting != null) {
             Log.d(TAG, "getPainting: returned non-null result")
-            return Result.Success(painting)
+            return Result.Success(localPainting)
         }
 
         return try {
             val docSnapshot = paintingRef.document(id).get().await()
             if (docSnapshot != null) {
-                val painting = docSnapshot.toObject<Painting>()
-                if (painting != null) {
-                    Result.Success(painting)
+                val remotePainting = docSnapshot.toObject<Painting>()
+                if (remotePainting != null) {
+                    Result.Success(remotePainting)
                 } else {
                     Result.Error(Exception("Document found, but could not convert to Painting"))
                 }

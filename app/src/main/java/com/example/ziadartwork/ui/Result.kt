@@ -1,4 +1,4 @@
-package com.example.ziadartwork.ui.viewmodels
+package com.example.ziadartwork.ui
 
 sealed class Result<out R> {
     object Loading : Result<Nothing>()

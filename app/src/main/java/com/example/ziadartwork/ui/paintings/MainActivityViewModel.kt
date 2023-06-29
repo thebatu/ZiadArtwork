@@ -1,4 +1,4 @@
-package com.example.ziadartwork.ui.viewmodels
+package com.example.ziadartwork.ui.paintings
 
 import WhileUiSubscribed
 import android.util.Log
@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.ziadartwork.di.AppDispatchers
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.domain.usecases.PaintingsUseCases
+import com.example.ziadartwork.ui.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject

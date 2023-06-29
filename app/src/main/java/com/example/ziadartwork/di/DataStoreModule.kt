@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.example.ziadartwork.data.repositoryImpl.PreferencesCartDataStore
+import com.example.ziadartwork.data.implementations.PreferencesCartDataStore
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

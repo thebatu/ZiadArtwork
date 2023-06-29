@@ -1,9 +1,11 @@
-package com.example.ziadartwork.domain.usecases
+package com.example.ziadartwork.data.implementations
 
 import com.example.ziadartwork.domain.repository.CartRepository
+import com.example.ziadartwork.domain.usecases.CartUseCases
 import javax.inject.Inject
 
-class CartUseCasesImpl @Inject constructor(private val cartRepository: CartRepository) : CartUseCases {
+class CartUseCasesImpl @Inject constructor(private val cartRepository: CartRepository) :
+    CartUseCases {
 
     override fun getCartContent() = cartRepository.getCartContent()
     override suspend fun addToCart(paintingId: String) = cartRepository.addToCart(paintingId)

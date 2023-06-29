@@ -1,11 +1,11 @@
-package com.example.ziadartwork.ui.ui.activity
+package com.example.ziadartwork.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.ziadartwork.ui.rememberWindowSizeClass
+import com.example.ziadartwork.util.rememberWindowSizeClass
 import com.example.ziadartwork.theme.ZiadArtworkTheme
-import com.example.ziadartwork.ui.ui.composables.CompatUI
+import com.example.ziadartwork.navigation.CompatUI
 import dagger.hilt.android.AndroidEntryPoint
 
     

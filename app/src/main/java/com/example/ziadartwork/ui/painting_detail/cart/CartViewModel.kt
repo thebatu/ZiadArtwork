@@ -1,10 +1,9 @@
-package com.example.ziadartwork.ui.viewmodels
+package com.example.ziadartwork.ui.painting_detail.cart
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetsnack.model.SnackbarManager
-import com.example.ziadartwork.domain.repository.CartRepository
 import com.example.ziadartwork.domain.usecases.CartUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

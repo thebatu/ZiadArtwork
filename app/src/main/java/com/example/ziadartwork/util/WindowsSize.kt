@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.ziadartwork.ui
+package com.example.ziadartwork.util
 
 import android.app.Activity
 import androidx.annotation.VisibleForTesting

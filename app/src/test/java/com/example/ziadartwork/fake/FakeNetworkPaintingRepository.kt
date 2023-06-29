@@ -1,4 +1,4 @@
-import com.example.ziadartwork.ui.viewmodels.Result
+import com.example.ziadartwork.ui.Result
 import com.example.ziadartwork.fake.FakeDataSource
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.domain.repository.PaintingsRepository
