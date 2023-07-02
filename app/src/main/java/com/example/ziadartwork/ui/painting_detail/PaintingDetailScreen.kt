@@ -77,6 +77,7 @@ fun PaintingDetailSetup(
 
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
     val shoppingCartViewModel: CartViewModel = hiltViewModel()
+    var paintingCount by remember { mutableStateOf(0) }
     var painting by remember(id) {
         mutableStateOf<Painting?>(null)
     }
@@ -85,7 +86,14 @@ fun PaintingDetailSetup(
         painting = paintingViewModel.getPainting(id)
     }
 
-    PaintingDetailScreen(painting, navController, shoppingCartViewModel)
+    LaunchedEffect(paintingCount){
+        paintingCount = shoppingCartViewModel.getCartContentForPainting(id)
+        println("HERE $paintingCount")
+
+    }
+
+    PaintingDetailScreen(painting, navController, shoppingCartViewModel, paintingCount
+    )
 }
 
 // TODO method too long brake it down into smaller chunks.
@@ -93,7 +101,8 @@ fun PaintingDetailSetup(
 fun PaintingDetailScreen(
     painting: Painting?,
     navController: NavHostController,
-    shoppingCartViewModel: CartViewModel
+    shoppingCartViewModel: CartViewModel,
+    paintingCount: Int
 ) {
     val scope = rememberCoroutineScope()
     var isCartClicked by remember { mutableStateOf(false) }
@@ -168,9 +177,6 @@ fun PaintingDetailScreen(
         }
     }
 
-
-    var currentPaintingCartItemCount = 2
-
     if (painting != null) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -234,9 +240,9 @@ fun PaintingDetailScreen(
                             painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
                             contentDescription = null,
                         )
-                        if (currentPaintingCartItemCount > 0) {
+                        if (paintingCount > 0) {
                             Text(
-                                text = currentPaintingCartItemCount.toString(),
+                                text = paintingCount.toString(),
                                 color = Color.White,
                                 fontSize = 12.sp,
                                 modifier = Modifier

@@ -21,31 +21,46 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val TAG = MainActivityViewModel::class.simpleName
-
-    private val _paintingsState = MutableStateFlow<Result<List<Painting>>>(Result.Loading)
-    val paintingsState: StateFlow<Result<List<Painting>>> = _paintingsState.asStateFlow()
-
+    private val _paintingsState = MutableStateFlow<PaintingsUiState<List<Painting>>>(PaintingsUiState.Loading)
+    val paintingsState: StateFlow<PaintingsUiState<List<Painting>>> = _paintingsState.asStateFlow()
     private var paintingsList = emptyList<Painting>()
 
-    fun fetchPaintings(): Flow<PaintingsUiState> = paintingsUseCase.getAllPaintings()
-        .map { result ->
-            when (result) {
-                is Result.Error -> PaintingsUiState.Error(result.exception)
+    init {
+        Log.d(TAG, "ViewModel Initialized: $this (hashCode: ${hashCode()})")
+        fetchPaintings()
+    }
 
-                is Result.Loading -> PaintingsUiState.Loading
+    fun fetchPaintings() {
+        Log.d(TAG, "fetchPaintings Called")
+        paintingsUseCase.getAllPaintings()
+            .map { result ->
+                _paintingsState.update {
+                    when (result) {
+                        is Result.Error -> {
+                            Log.d(TAG, "ERROR ")
+                            PaintingsUiState.Error(result.exception)
+                        }
 
-                is Result.Success -> {
-                    paintingsList = result.data
-                    PaintingsUiState.Success(paintingsList)
+                        is Result.Loading -> {
+                            Log.d(TAG, "LOADING")
+                            PaintingsUiState.Loading
+                        }
+
+                        is Result.Success -> {
+                            Log.d(TAG, "SUCCESS")
+                            paintingsList = result.data
+                            println(TAG + paintingsList)
+                            PaintingsUiState.Success(paintingsList)
+                        }
+                    }
+
                 }
             }
-        }
-        .onCompletion { Log.d(TAG, "Fetching paintings complete") }
-        .shareIn(
-            scope = viewModelScope,
-            started = WhileUiSubscribed,
-            replay = 1,
-        )
+            .onCompletion { Log.d(TAG, "Fetching paintings complete") }
+            .onStart { Log.d(TAG, "Fetching paintings started") }
+            .launchIn(viewModelScope)
+
+    }
 
     suspend fun getPainting(id: String): Painting? {
         return when (val result = paintingsUseCase.getPainting(id)) {
@@ -54,10 +69,10 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
-    sealed class PaintingsUiState {
-        object Loading : PaintingsUiState()
-        data class Error(val e: Throwable) : PaintingsUiState()
-        data class Success(val result: List<Painting>) : PaintingsUiState()
+    sealed class PaintingsUiState<out T> {
+        object Loading : PaintingsUiState<Nothing>()
+        data class Error(val e: Throwable) : PaintingsUiState<Nothing>()
+        data class Success<out T>(val data: T) : PaintingsUiState<T>()
     }
 
 }

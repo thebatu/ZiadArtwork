@@ -1,6 +1,5 @@
 package com.example.ziadartwork.ui.painting_detail.cart
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.jetsnack.model.SnackbarManager
@@ -9,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,30 +20,23 @@ class CartViewModel @Inject constructor(
     private val _cart = MutableStateFlow<Map<String, Int>>(emptyMap())
     val cartState: StateFlow<Map<String, Int>> = _cart.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            cartUseCases.getCartContent().collect { cartContent ->
-                // Handle the cartContent here
-                Log.d("MyTag", "Cart content: $cartContent")
-            }
-        }
+    suspend fun getCartContentForPainting(paintingId: String): Int {
+        val content = cartUseCases.getCartContent().first()
+        return content[paintingId] ?: 0
     }
 
     fun addPaintingToCart(paintingId: String) {
         viewModelScope.launch {
             cartUseCases.addToCart(paintingId)
         }
-        val currentCount: Map<String, Int> = _cart.value
-        updateCartWithNewCount(paintingId, currentCount.size + 1)
     }
 
     fun decreaseLocalPaintingCount(paintingId: String) {
         val totalItemCount = _cart.value.size
         if (totalItemCount == 1) {
-            removePaintingFromCart(paintingId)
+//            removePaintingFromCart(paintingId)
         } else {
-            // update quantity in cart
-            updateCartWithNewCount(paintingId, totalItemCount - 1)
+
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,25 +32,41 @@ import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.*
+import kotlinx.coroutines.delay
+import kotlin.concurrent.thread
 
 @Composable
 fun PaintingsHomeScreen(
     onPaintingSelected: (String) -> Unit = {},
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
+
+
     val homeScreenState by remember(viewModel) {
-        viewModel.fetchPaintings()
+        viewModel.paintingsState
     }.collectAsStateWithLifecycle(initialValue = Loading)
 
-    when (homeScreenState) {
-        is Success ->
+    when (val state = homeScreenState) {
+        is MainActivityViewModel.PaintingsUiState.Loading -> LoadingScreen()
+        is MainActivityViewModel.PaintingsUiState.Error -> ErrorScreen(retryAction = { viewModel.fetchPaintings() })
+        is MainActivityViewModel.PaintingsUiState.Success -> {
+            val paintingList = state.data
             PaintingsItemList(
-                paintingsList = (homeScreenState as Success).result,
-                onPaintingSelected = onPaintingSelected,
-            )
-        is Error  -> ErrorScreen(retryAction = { })
-        is Loading -> LoadingScreen()
+            paintingsList = paintingList,
+            onPaintingSelected = onPaintingSelected
+        )}
     }
+
+
+//    when (homeScreenState) {
+//        is Success ->
+//            PaintingsItemList(
+//                paintingsList = (homeScreenState as Success).result,
+//                onPaintingSelected = onPaintingSelected,
+//            )
+//        is Error  -> ErrorScreen(retryAction = { })
+//        is Loading -> LoadingScreen()
+//    }
 }
 
 @Composable

@@ -30,10 +30,12 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
     private var paintingsList: MutableList<Painting> = mutableListOf<Painting>()
 
     override fun getAllPaintings(): Flow<Result<List<Painting>>> = callbackFlow {
+        Log.d(TAG, "getAllPaintings: START")
 
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->
             val paintingsResponse = if (snapshot != null) {
                 val paintings: List<Painting> = snapshot.toObjects<Painting>()
+                Log.d(TAG, "getAllPaintings: data fetched from Firestore - ${paintings}") // And this
                 Log.d(TAG, "getAllPaintings: ${paintings}")
                 paintingsList.clear()
                 paintingsList.addAll(paintings)
