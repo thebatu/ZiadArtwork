@@ -38,17 +38,18 @@ fun PaintingsHomeScreen(
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
     val homeScreenState by remember(viewModel) {
-        viewModel.fetchPaintings()
+        viewModel.paintingsState
     }.collectAsStateWithLifecycle(initialValue = Loading)
 
-    when (homeScreenState) {
-        is Success ->
-            PaintingsItemList(
-                paintingsList = (homeScreenState as Success).result,
-                onPaintingSelected = onPaintingSelected,
-            )
-        is Error  -> ErrorScreen(retryAction = { })
+    when (val state = homeScreenState) {
         is Loading -> LoadingScreen()
+        is Error -> ErrorScreen(retryAction = { viewModel.fetchPaintings() })
+        is Success -> {
+            val paintingList = state.data
+            PaintingsItemList(
+                paintingsList = paintingList,
+                onPaintingSelected = onPaintingSelected
+            )}
     }
 }
 
