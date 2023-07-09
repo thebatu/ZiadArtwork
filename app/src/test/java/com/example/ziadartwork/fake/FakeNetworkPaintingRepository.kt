@@ -1,3 +1,4 @@
+import android.util.Log
 import com.example.ziadartwork.ui.Result
 import com.example.ziadartwork.fake.FakeDataSource
 import com.example.ziadartwork.data.model.Painting
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.flow
 
 class FakeNetworkPaintingRepository : PaintingsRepository {
     override fun getAllPaintings(): Flow<Result<List<Painting>>> {
+        println("PaintingsRepoImpl  In test ")
         val data: Result.Success<List<Painting>> = FakeDataSource.paintingsMock
         return flow { Result.Success(data) }
     }

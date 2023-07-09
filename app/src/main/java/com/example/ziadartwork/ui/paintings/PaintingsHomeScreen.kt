@@ -12,6 +12,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,13 +38,14 @@ fun PaintingsHomeScreen(
     onPaintingSelected: (String) -> Unit = {},
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
+
     val homeScreenState by remember(viewModel) {
-        viewModel.paintingsState
-    }.collectAsStateWithLifecycle(initialValue = Loading)
+        viewModel.fetchPaintings
+    }.collectAsStateWithLifecycle(MainActivityViewModel.PaintingsUiState.Loading)
 
     when (val state = homeScreenState) {
         is Loading -> LoadingScreen()
-        is Error -> ErrorScreen(retryAction = { viewModel.fetchPaintings() })
+        is Error -> ErrorScreen(retryAction = { viewModel.fetchPaintings })
         is Success -> {
             val paintingList = state.data
             PaintingsItemList(

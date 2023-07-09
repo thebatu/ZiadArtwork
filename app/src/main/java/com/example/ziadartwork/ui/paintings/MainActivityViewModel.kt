@@ -9,15 +9,13 @@ import com.example.ziadartwork.di.AppDispatchers
 import com.example.ziadartwork.domain.usecases.PaintingsUseCases
 import com.example.ziadartwork.ui.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,50 +26,43 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val TAG = MainActivityViewModel::class.simpleName
-
-    private val _paintingsState = MutableStateFlow<PaintingsUiState<List<Painting>>>(
-        PaintingsUiState.Error(
-            Throwable()
-        )
-    )
-    val paintingsState: StateFlow<PaintingsUiState<List<Painting>>> = _paintingsState.asStateFlow()
-
     private var paintingsList = emptyList<Painting>()
 
     init {
         Log.d(TAG, "ViewModel Initialized: $this (hashCode: ${hashCode()})")
-        fetchPaintings()
     }
 
-    fun fetchPaintings() {
-        paintingsUseCase
-            .getAllPaintings()
-            .onEach { result ->
-                Log.d(TAG, "Fetching started")
-                _paintingsState.update {
-                    when (result) {
-                        is Result.Error -> PaintingsUiState.Error(result.exception)
+    val fetchPaintings = paintingsUseCase
+        .getAllPaintings()
+        .catch { throwable ->
+            Log.d(TAG, "Exception: $throwable")
+            emit(Result.Error(throwable))
+        }
+        .map { result ->
+            Log.d(TAG, "CoroutineName $CoroutineName")
 
-                        is Result.Loading -> PaintingsUiState.Loading
+            when (result) {
+                is Result.Error -> PaintingsUiState.Error(result.throwable)
 
-                        is Result.Success -> {
-                            paintingsList = result.data
-                            PaintingsUiState.Success(paintingsList)
-                        }
-                    }
+                is Result.Loading -> PaintingsUiState.Loading
+
+                is Result.Success -> {
+                    paintingsList = result.data
+                    PaintingsUiState.Success(paintingsList)
                 }
             }
-            .onCompletion { Log.d(TAG, "Fetching paintings complete") }
-            .onStart {
-                Log.d(TAG, "Fetching paintings started")
-                _paintingsState.value = PaintingsUiState.Loading
-            }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.Eagerly,
-                initialValue = null
-            )
-    }
+
+        }
+        .onCompletion { Log.d(TAG, "Fetching paintings complete") }
+        .onStart {
+            Log.d(TAG, "Fetching paintings started")
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = PaintingsUiState.Loading,
+        )
+
 
     suspend fun getPainting(id: String): Painting? {
         return when (val result = paintingsUseCase.getPainting(id)) {

@@ -43,16 +43,13 @@ class PaintingsViewModelTest {
     @Test
     fun PaintingsViewModel_getPaintings_verifyPaintingsUiStateSuccess() {
         runTest {
-
-//            testDispatcher.testDispatcher.scheduler.advanceUntilIdle()
-
             val data = paintingsUseCases.getAllPaintings()
 
-            val value = viewModel.paintingsState.value
+            val value = viewModel.fetchPaintings
             val s = ""
 
             assertEquals(
-                Result.Success(emptyList<Painting>()), viewModel.paintingsState.value
+                Result.Success(emptyList<Painting>()), value
             )
         }
     }

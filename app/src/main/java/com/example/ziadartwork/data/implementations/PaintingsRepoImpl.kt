@@ -24,12 +24,13 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
     private val paintingRef: CollectionReference = Firebase.firestore.collection("paintings")
 
     companion object {
-        val TAG = PaintingsRepoImpl::class.simpleName
+        val TAG = "PaintingsRepoImpl"
     }
 
     private var paintingsList: MutableList<Painting> = mutableListOf<Painting>()
 
     override fun getAllPaintings(): Flow<Result<List<Painting>>> = callbackFlow {
+        Log.d(TAG, "Getting paintings in Repo Implementation" )
 
         val snapshotListener = paintingRef.addSnapshotListener { snapshot, e ->
             val paintingsResponse = if (snapshot != null) {
