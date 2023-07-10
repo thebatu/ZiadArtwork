@@ -45,6 +45,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -114,7 +115,6 @@ fun PaintingDetailScreen(
         paintingState = paintingState.copy(size = ImageSize.Small, zoom = ImageZoom.NotZoomed)
     }
 
-
     val popBackStack: () -> Unit = {
         when (paintingState) {
             PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> zoomOutPainting()
@@ -171,87 +171,106 @@ fun PaintingDetailScreen(
 
     var currentPaintingCartItemCount = 2
 
-    if (painting != null) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            ZoomablePaintingImg(
-                imageUrl = painting.url,
-                modifier = Modifier
-                    .offset(paintingOffset.x.dp, paintingOffset.y.dp)
-                    .size(size = paintingSize)
-                    .padding(8.dp),
-                resizeImg = togglePaintingSize,
-                goBack = popBackStack,
-                paintingLarge = zoomInPainting,
-                paintingSmall = zoomOutPainting,
-            )
-
-            AnimatedVisibility(
-                visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
-                enter = fadeIn() + expandHorizontally(),
-                exit = fadeOut() + shrinkHorizontally()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = painting.name,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp)
-                    )
-
-                    Text(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp),
-                        //TODO add a size to the painting model and replace static var
-                        text = "65 x 56 cm",
-
-                        )
-
-                    Spacer(Modifier.weight(1f))
-
-                    Box {
-                        Image(
-                            modifier = Modifier
-                                .scale(cartScale)
-                                .padding(8.dp)
-                                .clickable(
-                                    onClick = {
-                                        isCartClicked = true
-                                        shoppingCartViewModel.addPaintingToCart(paintingId = painting.id)
-                                        scope.launch {
-                                            delay(200) //needed for the cart animation
-                                            isCartClicked = false
-                                        }
-                                    }
-                                ),
-                            painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
-                            contentDescription = null,
-                        )
-                        if (currentPaintingCartItemCount > 0) {
-                            Text(
-                                text = currentPaintingCartItemCount.toString(),
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .background(Color.Red, CircleShape)
-                                    .padding(horizontal = 4.dp)
-                            )
-                        }
-                    }
-                }
-
-                Text(modifier = Modifier.padding(8.dp), text = painting.description)
-            }
+    val onCartIconClick: () -> Unit = {
+        isCartClicked = true
+        shoppingCartViewModel.addPaintingToCart(paintingId = painting!!.id)
+        scope.launch {
+            delay(200) //needed for the cart animation
+            isCartClicked = false
         }
+    }
 
+    if (painting != null) {
+        PaintingDetailContent(
+            painting = painting,
+            paintingSize = paintingSize,
+            paintingOffset = paintingOffset,
+            cartScale = cartScale,
+            isCartClicked = isCartClicked,
+            paintingState = paintingState,
+            togglePaintingSize = togglePaintingSize,
+            popBackStack = popBackStack,
+            zoomInPainting = zoomInPainting,
+            zoomOutPainting = zoomOutPainting,
+            currentPaintingCartItemCount = currentPaintingCartItemCount,
+            shoppingCartViewModel = shoppingCartViewModel,
+            onCartIconClick = onCartIconClick
+        )
+    }
+}
+
+@Composable
+fun PaintingDetailContent(
+    painting: Painting,
+    paintingSize: Dp,
+    paintingOffset: Offset,
+    cartScale: Float,
+    isCartClicked: Boolean,
+    paintingState: PaintingState,
+    togglePaintingSize: () -> Unit,
+    popBackStack: () -> Unit,
+    zoomInPainting: () -> Unit,
+    zoomOutPainting: () -> Unit,
+    currentPaintingCartItemCount: Int,
+    shoppingCartViewModel: CartViewModel,
+    onCartIconClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        ZoomablePaintingImg(
+            imageUrl = painting.url,
+            modifier = Modifier
+                .offset(paintingOffset.x.dp, paintingOffset.y.dp)
+                .size(paintingSize)
+                .padding(8.dp),
+            resizeImg = togglePaintingSize,
+            goBack = popBackStack,
+            paintingLarge = zoomInPainting,
+            paintingSmall = zoomOutPainting,
+        )
+
+        AnimatedVisibility(
+            visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
+            enter = fadeIn() + expandHorizontally(),
+            exit = fadeOut() + shrinkHorizontally()
+        ) {
+            PaintingTextContent(
+                painting = painting,
+                cartScale = cartScale,
+                onCartIconClick = onCartIconClick,
+                currentPaintingCartItemCount = currentPaintingCartItemCount
+            )
+        }
+    }
+}
+
+@Composable
+fun CartIcon(
+    cartScale: Float,
+    onCartClick: () -> Unit,
+    currentPaintingCartItemCount: Int
+) {
+    Box {
+        Image(
+            modifier = Modifier
+                .scale(cartScale)
+                .padding(8.dp)
+                .clickable(onClick = onCartClick),
+            painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+            contentDescription = null,
+        )
+        if (currentPaintingCartItemCount > 0) {
+            Text(
+                text = currentPaintingCartItemCount.toString(),
+                color = Color.White,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .background(Color.Red, CircleShape)
+                    .padding(horizontal = 4.dp)
+            )
+        }
     }
 }
 
@@ -344,6 +363,53 @@ fun ZoomablePaintingImg(
 
     )
 }
+
+@Composable
+fun PaintingTextContent(
+    painting: Painting,
+    cartScale: Float,
+    onCartIconClick: () -> Unit,
+    currentPaintingCartItemCount: Int
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = painting.name,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp)
+            )
+
+            Text(
+                //TODO add a size to the painting model and replace static var
+                text = "65 x 56 cm",
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(8.dp),
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            CartIcon(
+                cartScale = cartScale,
+                onCartClick = onCartIconClick,
+                currentPaintingCartItemCount = currentPaintingCartItemCount
+            )
+        }
+
+        Text(
+            text = painting.description,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
+}
+
 
 fun isImageZoomed(zoom: Float, offsetX: Float, offsetY: Float, angle: Float): Boolean {
     return (zoom != 1f || offsetX != 0f || offsetY != 0f || angle != 0f)
