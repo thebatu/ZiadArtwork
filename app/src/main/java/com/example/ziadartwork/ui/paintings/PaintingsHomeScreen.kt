@@ -41,7 +41,7 @@ fun PaintingsHomeScreen(
 
     val homeScreenState by remember(viewModel) {
         viewModel.fetchPaintings
-    }.collectAsStateWithLifecycle(MainActivityViewModel.PaintingsUiState.Loading)
+    }.collectAsStateWithLifecycle(Loading)
 
     when (val state = homeScreenState) {
         is Loading -> LoadingScreen()
@@ -51,7 +51,8 @@ fun PaintingsHomeScreen(
             PaintingsItemList(
                 paintingsList = paintingList,
                 onPaintingSelected = onPaintingSelected
-            )}
+            )
+        }
     }
 }
 

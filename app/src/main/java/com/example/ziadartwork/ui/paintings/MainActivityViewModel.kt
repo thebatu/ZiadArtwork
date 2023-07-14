@@ -40,7 +40,6 @@ class MainActivityViewModel @Inject constructor(
         }
         .map { result ->
             Log.d(TAG, "CoroutineName $CoroutineName")
-
             when (result) {
                 is Result.Error -> PaintingsUiState.Error(result.throwable)
 

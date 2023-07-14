@@ -53,7 +53,7 @@ fun CompatUI(
                 ),
             ) { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
-                PaintingDetailSetup(id = id.orEmpty(), navController)
+                PaintingDetailSetup(paintingId = id.orEmpty(), navController)
 //                MyUI()
             }
         }

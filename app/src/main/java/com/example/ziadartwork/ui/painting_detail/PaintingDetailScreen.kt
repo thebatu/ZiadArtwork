@@ -32,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +42,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
@@ -58,6 +59,7 @@ import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -72,30 +74,33 @@ fun PaintingDetailScreenPreview() {
 
 @Composable
 fun PaintingDetailSetup(
-    id: String,
+    paintingId: String,
     navController: NavHostController,
 ) {
 
-    val paintingViewModel: MainActivityViewModel = hiltViewModel()
     val shoppingCartViewModel: CartViewModel = hiltViewModel()
-    var painting by remember(id) {
-        mutableStateOf<Painting?>(null)
+    val paintingViewModel: MainActivityViewModel = hiltViewModel()
+    var painting by remember(paintingId) { mutableStateOf<Painting?>(null) }
+    var cartCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(paintingId) {
+        painting = paintingViewModel.getPainting(paintingId)
+        shoppingCartViewModel.getCurrentPaintingCount(paintingId).collect {
+            cartCount = it
+        }
     }
 
-    LaunchedEffect(id) {
-        painting = paintingViewModel.getPainting(id)
-    }
-
-    PaintingDetailScreen(painting, navController, shoppingCartViewModel)
+    PaintingDetailScreen(painting, navController, shoppingCartViewModel, cartCount)
 }
 
-// TODO method too long brake it down into smaller chunks.
 @Composable
 fun PaintingDetailScreen(
     painting: Painting?,
     navController: NavHostController,
-    shoppingCartViewModel: CartViewModel
+    shoppingCartViewModel: CartViewModel,
+    cartCount: Int,
 ) {
+
     val scope = rememberCoroutineScope()
     var isCartClicked by remember { mutableStateOf(false) }
 
@@ -141,11 +146,10 @@ fun PaintingDetailScreen(
         animationSpec = tween(durationMillis = 400),
         label = "cart Scale"
     )
-    //TODO remove forceRecomposition for animation
-    val forceRecompose = rememberUpdatedState(cartScale)
 
     val sizeTransition =
         updateTransition(targetState = paintingState.size, label = "sizeTransition")
+
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
             ImageSize.Small -> 400.dp
@@ -163,18 +167,17 @@ fun PaintingDetailScreen(
         if (size == ImageSize.Large) {
             //TODO this will not work on all screen devices, initial offset should be set from the outside
             Offset(0f, 100f)
+
         } else {
             Offset(0f, 0f)
         }
     }
 
-
-    var currentPaintingCartItemCount = 2
-
     val onCartIconClick: () -> Unit = {
         isCartClicked = true
-        shoppingCartViewModel.addPaintingToCart(paintingId = painting!!.id)
+
         scope.launch {
+            shoppingCartViewModel.addPaintingToCart(paintingId = painting!!.id)
             delay(200) //needed for the cart animation
             isCartClicked = false
         }
@@ -192,7 +195,7 @@ fun PaintingDetailScreen(
             popBackStack = popBackStack,
             zoomInPainting = zoomInPainting,
             zoomOutPainting = zoomOutPainting,
-            currentPaintingCartItemCount = currentPaintingCartItemCount,
+            currentPaintingCartItemCount = cartCount,
             shoppingCartViewModel = shoppingCartViewModel,
             onCartIconClick = onCartIconClick
         )
@@ -224,10 +227,10 @@ fun PaintingDetailContent(
                 .offset(paintingOffset.x.dp, paintingOffset.y.dp)
                 .size(paintingSize)
                 .padding(8.dp),
-            resizeImg = togglePaintingSize,
-            goBack = popBackStack,
-            paintingLarge = zoomInPainting,
-            paintingSmall = zoomOutPainting,
+            togglePaintingSize = togglePaintingSize,
+            navigateBack = popBackStack,
+            zoomIn = zoomInPainting,
+            zoomOut = zoomOutPainting,
         )
 
         AnimatedVisibility(
@@ -235,7 +238,7 @@ fun PaintingDetailContent(
             enter = fadeIn() + expandHorizontally(),
             exit = fadeOut() + shrinkHorizontally()
         ) {
-            PaintingTextContent(
+            PaintingDetailsAndCartContent(
                 painting = painting,
                 cartScale = cartScale,
                 onCartIconClick = onCartIconClick,
@@ -247,20 +250,20 @@ fun PaintingDetailContent(
 
 @Composable
 fun CartIcon(
-    cartScale: Float,
+    cartIconScale: Float,
     onCartClick: () -> Unit,
     currentPaintingCartItemCount: Int
 ) {
     Box {
         Image(
             modifier = Modifier
-                .scale(cartScale)
+                .scale(cartIconScale)
                 .padding(8.dp)
                 .clickable(onClick = onCartClick),
             painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
             contentDescription = null,
         )
-        if (currentPaintingCartItemCount > 0) {
+        if (currentPaintingCartItemCount != 0) {
             Text(
                 text = currentPaintingCartItemCount.toString(),
                 color = Color.White,
@@ -279,10 +282,10 @@ fun CartIcon(
 fun ZoomablePaintingImg(
     imageUrl: String,
     modifier: Modifier,
-    resizeImg: () -> Unit,
-    goBack: () -> Unit,
-    paintingLarge: () -> Unit,
-    paintingSmall: () -> Unit
+    togglePaintingSize: () -> Unit,
+    navigateBack: () -> Unit,
+    zoomIn: () -> Unit,
+    zoomOut: () -> Unit
 ) {
     var imageRotationAngle by remember { mutableStateOf(0f) }
     var imageZoomLevel by remember { mutableStateOf(1f) }
@@ -298,14 +301,14 @@ fun ZoomablePaintingImg(
         imageOffsetX = 0f
         imageOffsetY = 0f
         imageRotationAngle = 0f
-        paintingSmall()
+        zoomOut()
     }
 
     BackHandler(enabled = true) {
         if (isImageZoomed(imageZoomLevel, imageOffsetX, imageOffsetY, imageRotationAngle)) {
             resetImgAttributes()
         } else {
-            goBack()
+            navigateBack()
         }
     }
 
@@ -325,7 +328,7 @@ fun ZoomablePaintingImg(
                     onGesture = { _, pan, gestureZoom, _ ->
                         imageZoomLevel = (imageZoomLevel * gestureZoom).coerceIn(1F..8F)
                         if (imageZoomLevel > 1) {
-                            paintingLarge()
+                            zoomIn()
                             val x = (pan.x * imageZoomLevel)
                             val y = (pan.y * imageZoomLevel)
                             val angleRad = imageRotationAngle * PI / 180.0
@@ -356,16 +359,15 @@ fun ZoomablePaintingImg(
                     ) {
                         resetImgAttributes()
                     } else {
-                        resizeImg()
+                        togglePaintingSize()
                     }
                 },
             )
-
     )
 }
 
 @Composable
-fun PaintingTextContent(
+fun PaintingDetailsAndCartContent(
     painting: Painting,
     cartScale: Float,
     onCartIconClick: () -> Unit,
@@ -397,7 +399,7 @@ fun PaintingTextContent(
             Spacer(Modifier.weight(1f))
 
             CartIcon(
-                cartScale = cartScale,
+                cartIconScale = cartScale,
                 onCartClick = onCartIconClick,
                 currentPaintingCartItemCount = currentPaintingCartItemCount
             )
