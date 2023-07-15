@@ -143,17 +143,29 @@ fun PaintingDetailScreen(
     //Cart related variables and anim
     val cartScale: Float by animateFloatAsState(
         if (isCartClicked) 1.6f else 1f,
-        animationSpec = tween(durationMillis = 400),
+            animationSpec = tween(durationMillis = 400),
         label = "cart Scale"
     )
 
     val sizeTransition =
         updateTransition(targetState = paintingState.size, label = "sizeTransition")
 
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp.value
+    val screenHeight = configuration.screenHeightDp.dp.value
+
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
             ImageSize.Small -> 400.dp
-            ImageSize.Large -> 600.dp
+            ImageSize.Large -> {
+                val largeSize = 600.dp
+                if (screenWidth < largeSize.value) {
+                    screenWidth.dp
+                } else {
+                    largeSize
+                }
+            }
         }
     }
 
@@ -163,15 +175,22 @@ fun PaintingDetailScreen(
         } else {
             tween(600) // land duration
         }
-    }, label = "painting offset") { size ->
-        if (size == ImageSize.Large) {
+    }, label = "painting offset") { targetState ->
             //TODO this will not work on all screen devices, initial offset should be set from the outside
-            Offset(0f, 100f)
-
-        } else {
-            Offset(0f, 0f)
+        with(density) {
+            val y = when (targetState) {
+                ImageSize.Small -> 0f // at the top
+                ImageSize.Large -> ((screenHeight - paintingSize.value) / 2f) // at the center
+            }
+            Offset(
+                x = when (targetState) {
+                    ImageSize.Small -> ((screenWidth - paintingSize.value) / 2f) // at the center
+                    ImageSize.Large -> ((screenWidth - paintingSize.value) / 2f) // at the center
+                },
+                y = y
+            )
         }
-    }
+        }
 
     val onCartIconClick: () -> Unit = {
         isCartClicked = true
@@ -355,6 +374,7 @@ fun ZoomablePaintingImg(
                             imageOffsetX,
                             imageOffsetY,
                             imageRotationAngle
+
                         )
                     ) {
                         resetImgAttributes()
