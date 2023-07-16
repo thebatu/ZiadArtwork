@@ -1,5 +1,6 @@
 package com.example.ziadartwork.ui.painting_detail
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDp
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,12 +47,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
@@ -59,7 +61,6 @@ import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -81,14 +82,12 @@ fun PaintingDetailSetup(
     val shoppingCartViewModel: CartViewModel = hiltViewModel()
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(paintingId) { mutableStateOf<Painting?>(null) }
-    var cartCount by remember { mutableStateOf(0) }
 
     LaunchedEffect(paintingId) {
         painting = paintingViewModel.getPainting(paintingId)
-        shoppingCartViewModel.getCurrentPaintingCount(paintingId).collect {
-            cartCount = it
-        }
     }
+
+    val cartCount by shoppingCartViewModel.getCurrentPaintingCount(paintingId).collectAsState()
 
     PaintingDetailScreen(painting, navController, shoppingCartViewModel, cartCount)
 }
@@ -105,7 +104,12 @@ fun PaintingDetailScreen(
     var isCartClicked by remember { mutableStateOf(false) }
 
     var paintingState by remember {
-        mutableStateOf(PaintingState(ImageSize.Small, ImageZoom.NotZoomed))
+        mutableStateOf(
+            PaintingState(
+                ImageSize.Small,
+                ImageZoom.NotZoomed,
+            )
+        )
     }
 
     val zoomInPainting: () -> Unit = {
@@ -117,15 +121,28 @@ fun PaintingDetailScreen(
     }
 
     val shrinkPainting: () -> Unit = {
-        paintingState = paintingState.copy(size = ImageSize.Small, zoom = ImageZoom.NotZoomed)
+        paintingState = paintingState.copy(size = ImageSize.Small)
     }
 
     val popBackStack: () -> Unit = {
         when (paintingState) {
-            PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> zoomOutPainting()
-            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> shrinkPainting()
-            PaintingState(ImageSize.Large, ImageZoom.Zoomed) -> shrinkPainting()
-            PaintingState(ImageSize.Small, ImageZoom.NotZoomed) -> navController.popBackStack()
+            PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> {
+                zoomOutPainting()
+            }
+            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> {
+                shrinkPainting()
+            }
+            PaintingState(ImageSize.Large, ImageZoom.Zoomed) -> {
+                shrinkPainting()
+            }
+            PaintingState(
+                ImageSize.Small,
+                ImageZoom.NotZoomed
+            ) -> navController.popBackStack()
+
+            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> {
+                shrinkPainting()
+            }
         }
     }
 
@@ -143,17 +160,17 @@ fun PaintingDetailScreen(
     //Cart related variables and anim
     val cartScale: Float by animateFloatAsState(
         if (isCartClicked) 1.6f else 1f,
-            animationSpec = tween(durationMillis = 400),
+        animationSpec = tween(durationMillis = 400),
         label = "cart Scale"
     )
 
     val sizeTransition =
         updateTransition(targetState = paintingState.size, label = "sizeTransition")
 
-    val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp.value
-    val screenHeight = configuration.screenHeightDp.dp.value
+    val density: Density = LocalDensity.current
+    val configuration: Configuration = LocalConfiguration.current
+    val screenWidth: Float = configuration.screenWidthDp.dp.value
+    val screenHeight: Float = configuration.screenHeightDp.dp.value
 
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
@@ -176,7 +193,7 @@ fun PaintingDetailScreen(
             tween(600) // land duration
         }
     }, label = "painting offset") { targetState ->
-            //TODO this will not work on all screen devices, initial offset should be set from the outside
+        //TODO this will not work on all screen devices, initial offset should be set from the outside
         with(density) {
             val y = when (targetState) {
                 ImageSize.Small -> 0f // at the top
@@ -190,15 +207,17 @@ fun PaintingDetailScreen(
                 y = y
             )
         }
-        }
+    }
 
     val onCartIconClick: () -> Unit = {
         isCartClicked = true
 
         scope.launch {
-            shoppingCartViewModel.addPaintingToCart(paintingId = painting!!.id)
-            delay(200) //needed for the cart animation
-            isCartClicked = false
+            painting?.let {
+                shoppingCartViewModel.addPaintingToCart(paintingId = it.id)
+                delay(200) //needed for the cart animation
+                isCartClicked = false
+            }
         }
     }
 
@@ -221,6 +240,8 @@ fun PaintingDetailScreen(
     }
 }
 
+//...
+
 @Composable
 fun PaintingDetailContent(
     painting: Painting,
@@ -240,17 +261,40 @@ fun PaintingDetailContent(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        ZoomablePaintingImg(
-            imageUrl = painting.url,
-            modifier = Modifier
-                .offset(paintingOffset.x.dp, paintingOffset.y.dp)
-                .size(paintingSize)
-                .padding(8.dp),
-            togglePaintingSize = togglePaintingSize,
-            navigateBack = popBackStack,
-            zoomIn = zoomInPainting,
-            zoomOut = zoomOutPainting,
-        )
+        Box(
+            modifier = Modifier.offset(paintingOffset.x.dp, paintingOffset.y.dp)
+        ) {
+            ZoomablePaintingImg(
+                imageUrl = painting.url,
+                modifier = Modifier
+                    .size(paintingSize)
+                    .padding(8.dp),
+                togglePaintingSize = togglePaintingSize,
+                navigateBack = popBackStack,
+                zoomIn = zoomInPainting,
+                zoomOut = zoomOutPainting,
+            )
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.click),
+                    contentDescription = null,
+                    alpha = if (paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small) 1f else 0f,
+                )
+
+                Image(
+                    painter = painterResource(R.drawable.pinch_to_zoom),
+                    contentDescription = null,
+                    alpha = if (paintingState.size == ImageSize.Large && paintingState.zoom == ImageZoom.NotZoomed) 1f else 0f,
+                )
+            }
+
+        }
 
         AnimatedVisibility(
             visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
