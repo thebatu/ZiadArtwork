@@ -1,6 +1,5 @@
 package com.example.ziadartwork.ui.painting_detail
 
-import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDp
@@ -66,7 +65,6 @@ import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
-
 @Preview(showBackground = true)
 @Composable
 fun PaintingDetailScreenPreview() {
@@ -78,6 +76,9 @@ fun PaintingDetailSetup(
     paintingId: String,
     navController: NavHostController,
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp.value
+    val screenHeight = configuration.screenHeightDp.dp.value
 
     val shoppingCartViewModel: CartViewModel = hiltViewModel()
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
@@ -89,7 +90,7 @@ fun PaintingDetailSetup(
 
     val cartCount by shoppingCartViewModel.getCurrentPaintingCount(paintingId).collectAsState()
 
-    PaintingDetailScreen(painting, navController, shoppingCartViewModel, cartCount)
+    PaintingDetailScreen(painting, navController, shoppingCartViewModel, cartCount, screenHeight, screenWidth)
 }
 
 @Composable
@@ -98,6 +99,8 @@ fun PaintingDetailScreen(
     navController: NavHostController,
     shoppingCartViewModel: CartViewModel,
     cartCount: Int,
+    screenHeight: Float,
+    screenWidth: Float,
 ) {
 
     val scope = rememberCoroutineScope()
@@ -168,9 +171,6 @@ fun PaintingDetailScreen(
         updateTransition(targetState = paintingState.size, label = "sizeTransition")
 
     val density: Density = LocalDensity.current
-    val configuration: Configuration = LocalConfiguration.current
-    val screenWidth: Float = configuration.screenWidthDp.dp.value
-    val screenHeight: Float = configuration.screenHeightDp.dp.value
 
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
@@ -235,7 +235,10 @@ fun PaintingDetailScreen(
             zoomOutPainting = zoomOutPainting,
             currentPaintingCartItemCount = cartCount,
             shoppingCartViewModel = shoppingCartViewModel,
-            onCartIconClick = onCartIconClick
+            onCartIconClick = onCartIconClick,
+            screenHeight = screenHeight,
+            screenWidth = screenWidth
+
         )
     }
 }
@@ -257,6 +260,8 @@ fun PaintingDetailContent(
     currentPaintingCartItemCount: Int,
     shoppingCartViewModel: CartViewModel,
     onCartIconClick: () -> Unit,
+    screenHeight: Float,
+    screenWidth: Float,
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -273,27 +278,34 @@ fun PaintingDetailContent(
                 navigateBack = popBackStack,
                 zoomIn = zoomInPainting,
                 zoomOut = zoomOutPainting,
+                screenHeight,
+                screenWidth
+
             )
 
+            val boxInABoxSize = paintingSize * 0.10f
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .size(28.dp),
-                contentAlignment = Alignment.Center
+                    .padding(12.dp)
+                    .size(boxInABoxSize),
+                contentAlignment = Alignment.BottomEnd
+
             ) {
                 Image(
-                    painter = painterResource(R.drawable.click),
+                    painter = painterResource(R.drawable.baseline_touch_app_24),
                     contentDescription = null,
+                    modifier = Modifier.padding(8.dp).size(36.dp),
                     alpha = if (paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small) 1f else 0f,
                 )
 
                 Image(
-                    painter = painterResource(R.drawable.pinch_to_zoom),
+                    painter = painterResource(R.drawable.baseline_pinch_24),
                     contentDescription = null,
+                    modifier = Modifier.padding(8.dp).size(36.dp),
                     alpha = if (paintingState.size == ImageSize.Large && paintingState.zoom == ImageZoom.NotZoomed) 1f else 0f,
                 )
             }
-
         }
 
         AnimatedVisibility(
@@ -348,16 +360,14 @@ fun ZoomablePaintingImg(
     togglePaintingSize: () -> Unit,
     navigateBack: () -> Unit,
     zoomIn: () -> Unit,
-    zoomOut: () -> Unit
-) {
+    zoomOut: () -> Unit,
+    screenHeight: Float,
+    screenWidth: Float,
+    ) {
     var imageRotationAngle by remember { mutableStateOf(0f) }
     var imageZoomLevel by remember { mutableStateOf(1f) }
     var imageOffsetX by remember { mutableStateOf(0f) }
     var imageOffsetY by remember { mutableStateOf(0f) }
-
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp.value
-    val screenHeight = configuration.screenHeightDp.dp.value
 
     fun resetImgAttributes() {
         imageZoomLevel = 1f
