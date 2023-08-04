@@ -62,10 +62,12 @@ class MainActivityViewModel @Inject constructor(
             initialValue = PaintingsUiState.Loading,
         )
 
-    suspend fun getPainting(id: String): Painting? {
-        return when (val result = paintingsUseCase.getPainting(id)) {
-            is Result.Success -> result.data
-            else -> null
+    suspend fun getPainting(id: String): PaintingsUiState<Painting?> {
+        val result = paintingsUseCase.getPainting(id)
+        return when (result) {
+            is Result.Success -> PaintingsUiState.Success(result.data)
+            is Result.Error -> PaintingsUiState.Error(result.throwable)
+            is Result.Loading -> PaintingsUiState.Loading
         }
     }
 

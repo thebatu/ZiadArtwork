@@ -58,6 +58,7 @@ import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -67,9 +68,7 @@ import kotlin.math.sin
 
 @Preview(showBackground = true)
 @Composable
-fun PaintingDetailScreenPreview() {
-//PaintingDetailScreen2("111")
-}
+fun PaintingDetailScreenPreview() {}
 
 @Composable
 fun PaintingDetailSetup(
@@ -84,13 +83,27 @@ fun PaintingDetailSetup(
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(paintingId) { mutableStateOf<Painting?>(null) }
 
+    var paintingState by remember {
+        mutableStateOf<PaintingsUiState<Painting?>>(PaintingsUiState.Loading)
+    }
+
     LaunchedEffect(paintingId) {
-        painting = paintingViewModel.getPainting(paintingId)
+        paintingState = paintingViewModel.getPainting(paintingId)
     }
 
     val cartCount by shoppingCartViewModel.getCurrentPaintingCount(paintingId).collectAsState()
 
-    PaintingDetailScreen(painting, navController, shoppingCartViewModel, cartCount, screenHeight, screenWidth)
+    when (val state = paintingState) {
+        is PaintingsUiState.Loading -> {
+            // TODO display loading
+        }
+        is PaintingsUiState.Error -> {
+            // TODO show a toast with the error msg
+        }
+        is PaintingsUiState.Success -> {
+            PaintingDetailScreen(state.data, navController, shoppingCartViewModel, cartCount, screenHeight, screenWidth)
+        }
+    }
 }
 
 @Composable
@@ -102,6 +115,8 @@ fun PaintingDetailScreen(
     screenHeight: Float,
     screenWidth: Float,
 ) {
+
+    val density: Density = LocalDensity.current
 
     val scope = rememberCoroutineScope()
     var isCartClicked by remember { mutableStateOf(false) }
@@ -127,6 +142,10 @@ fun PaintingDetailScreen(
         paintingState = paintingState.copy(size = ImageSize.Small)
     }
 
+    val enlargePainting: () -> Unit = {
+        paintingState = paintingState.copy(size = ImageSize.Large)
+    }
+
     val popBackStack: () -> Unit = {
         when (paintingState) {
             PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> {
@@ -149,10 +168,6 @@ fun PaintingDetailScreen(
         }
     }
 
-    val enlargePainting: () -> Unit = {
-        paintingState = paintingState.copy(size = ImageSize.Large)
-    }
-
     val togglePaintingSize: () -> Unit = {
         when (paintingState.size) {
             ImageSize.Small -> enlargePainting()
@@ -169,8 +184,6 @@ fun PaintingDetailScreen(
 
     val sizeTransition =
         updateTransition(targetState = paintingState.size, label = "sizeTransition")
-
-    val density: Density = LocalDensity.current
 
     val paintingSize by sizeTransition.animateDp(label = "painting Size Transition") {
         when (it) {
@@ -211,7 +224,6 @@ fun PaintingDetailScreen(
 
     val onCartIconClick: () -> Unit = {
         isCartClicked = true
-
         scope.launch {
             painting?.let {
                 shoppingCartViewModel.addPaintingToCart(paintingId = it.id)
@@ -221,9 +233,9 @@ fun PaintingDetailScreen(
         }
     }
 
-    if (painting != null) {
+    painting?.let {
         PaintingDetailContent(
-            painting = painting,
+            painting = it,
             paintingSize = paintingSize,
             paintingOffset = paintingOffset,
             cartScale = cartScale,
@@ -238,12 +250,9 @@ fun PaintingDetailScreen(
             onCartIconClick = onCartIconClick,
             screenHeight = screenHeight,
             screenWidth = screenWidth
-
         )
     }
 }
-
-//...
 
 @Composable
 fun PaintingDetailContent(
@@ -335,7 +344,7 @@ fun CartIcon(
                 .scale(cartIconScale)
                 .padding(8.dp)
                 .clickable(onClick = onCartClick),
-            painter = painterResource(R.drawable.ic_baseline_add_shopping_cart_24),
+            painter = painterResource(R.drawable.baseline_add_shopping_cart_24),
             contentDescription = null,
         )
         if (currentPaintingCartItemCount != 0) {
@@ -351,7 +360,6 @@ fun CartIcon(
         }
     }
 }
-
 
 @Composable
 fun ZoomablePaintingImg(
@@ -428,7 +436,6 @@ fun ZoomablePaintingImg(
                             imageOffsetX,
                             imageOffsetY,
                             imageRotationAngle
-
                         )
                     ) {
                         resetImgAttributes()
