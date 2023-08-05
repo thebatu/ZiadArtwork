@@ -33,6 +33,8 @@ import coil.request.ImageRequest
 import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.theme.LocalDimensions
+import com.example.ziadartwork.theme.dimensions
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.*
 
 @Composable
@@ -67,6 +69,7 @@ fun PaintingsItemList(
         columns = GridCells.Adaptive(minSize = 200.dp),
 
         modifier = Modifier.fillMaxHeight(),
+
     ) {
         items(paintingsList, key = { item -> item.id }) { painting ->
             PaintingItem(
@@ -92,10 +95,10 @@ fun PaintingItem(
 ) {
     Card(
         modifier = modifier
-            .padding(4.dp)
+            .padding(MaterialTheme.dimensions.extraSmall)
             .fillMaxWidth()
             .aspectRatio(1f),
-        elevation = 8.dp,
+        elevation = MaterialTheme.dimensions.small,
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -111,7 +114,7 @@ fun PaintingItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(4.dp)
+                .padding(MaterialTheme.dimensions.extraSmall)
                 .clickable(
                     onClick = {
                         onPaintingSelected(Destination.DetailDestination.withArgs(id))

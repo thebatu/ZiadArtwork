@@ -2,9 +2,10 @@ package com.example.ziadartwork.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -73,17 +74,21 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun ZiadArtworkTheme(
-  useDarkTheme: Boolean = isSystemInDarkTheme(),
-  content: @Composable() () -> Unit
+    useDarkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable() () -> Unit
 ) {
-  val colors = if (!useDarkTheme) {
-    LightColors
-  } else {
-    DarkColors
-  }
+    val colors =
+        if (!useDarkTheme) {
+            LightColors
+        } else {
+            DarkColors
+        }
 
-  MaterialTheme(
-    colorScheme = colors,
-    content = content
-  )
+    CompositionLocalProvider(LocalDimensions provides Dimensions()) {
+        MaterialTheme(
+            colorScheme = colors,
+            content = content
+        )
+    }
+
 }

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +57,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
+import com.example.ziadartwork.theme.LocalDimensions
+import com.example.ziadartwork.theme.dimensions
 import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState
@@ -282,7 +285,7 @@ fun PaintingDetailContent(
                 imageUrl = painting.url,
                 modifier = Modifier
                     .size(paintingSize)
-                    .padding(8.dp),
+                    .padding(MaterialTheme.dimensions.small),
                 togglePaintingSize = togglePaintingSize,
                 navigateBack = popBackStack,
                 zoomIn = zoomInPainting,
@@ -304,14 +307,14 @@ fun PaintingDetailContent(
                 Image(
                     painter = painterResource(R.drawable.baseline_touch_app_24),
                     contentDescription = null,
-                    modifier = Modifier.padding(8.dp).size(36.dp),
+                    modifier = Modifier.padding(MaterialTheme.dimensions.small).size(36.dp),
                     alpha = if (paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small) 1f else 0f,
                 )
 
                 Image(
                     painter = painterResource(R.drawable.baseline_pinch_24),
                     contentDescription = null,
-                    modifier = Modifier.padding(8.dp).size(36.dp),
+                    modifier = Modifier.padding(MaterialTheme.dimensions.small).size(36.dp),
                     alpha = if (paintingState.size == ImageSize.Large && paintingState.zoom == ImageZoom.NotZoomed) 1f else 0f,
                 )
             }
@@ -342,7 +345,7 @@ fun CartIcon(
         Image(
             modifier = Modifier
                 .scale(cartIconScale)
-                .padding(8.dp)
+                .padding(MaterialTheme.dimensions.small)
                 .clickable(onClick = onCartClick),
             painter = painterResource(R.drawable.baseline_add_shopping_cart_24),
             contentDescription = null,
@@ -355,7 +358,7 @@ fun CartIcon(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .background(Color.Red, CircleShape)
-                    .padding(horizontal = 4.dp)
+                    .padding(horizontal = MaterialTheme.dimensions.extraSmall)
             )
         }
     }
@@ -457,7 +460,7 @@ fun PaintingDetailsAndCartContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(MaterialTheme.dimensions.small),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -466,7 +469,7 @@ fun PaintingDetailsAndCartContent(
                 text = painting.name,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp)
+                    .padding(MaterialTheme.dimensions.small)
             )
 
             Text(
@@ -474,7 +477,7 @@ fun PaintingDetailsAndCartContent(
                 text = "65 x 56 cm",
                 modifier = Modifier
                     .weight(1f)
-                    .padding(8.dp),
+                    .padding(MaterialTheme.dimensions.small),
             )
 
             Spacer(Modifier.weight(1f))
@@ -488,7 +491,7 @@ fun PaintingDetailsAndCartContent(
 
         Text(
             text = painting.description,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(MaterialTheme.dimensions.small)
         )
     }
 }
