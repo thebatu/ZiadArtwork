@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.ziadartwork.domain.repository.CartRepository
-import com.example.ziadartwork.data.implementations.CartRepositoryImpl
+import com.example.ziadartwork.data.repository.CartRepositoryImpl
 import com.example.ziadartwork.domain.repository.CartDataStore
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -56,7 +56,7 @@ class CartRepoTest() {
     fun repository_testWriteSortByDeadline() = testCoroutineScope.runBlockingTest {
         repository.addToCart("33333")
         val cartContent = repository.getCartContent().first()
-        assertEquals(1, cartContent["33333"])
+        assertEquals(1, cartContent["33333".toInt()])
     }
 
     @Test

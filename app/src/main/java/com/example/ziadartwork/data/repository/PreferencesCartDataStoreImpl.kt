@@ -1,4 +1,4 @@
-package com.example.ziadartwork.data.implementations
+package com.example.ziadartwork.data.repository
 
 import com.example.ziadartwork.domain.repository.CartDataStore
 import androidx.datastore.core.DataStore
@@ -8,7 +8,7 @@ import javax.inject.Inject
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 
-class PreferencesCartDataStore @Inject constructor(
+class PreferencesCartDataStoreImpl @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : CartDataStore {
 

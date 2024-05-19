@@ -1,4 +1,4 @@
-package com.example.ziadartwork.data.implementations
+package com.example.ziadartwork.data.repository
 
 import android.util.Log
 import com.example.ziadartwork.data.model.Painting
@@ -27,7 +27,7 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
         val TAG = "PaintingsRepoImpl"
     }
 
-    private var paintingsList: MutableList<Painting> = mutableListOf<Painting>()
+    lateinit var paintingsList: MutableList<Painting>
 
     override fun getAllPaintings(): Flow<Result<List<Painting>>> = callbackFlow {
         Log.d(TAG, "Getting paintings in Repo Implementation" )
@@ -36,7 +36,7 @@ class PaintingsRepoImpl @Inject constructor() : PaintingsRepository {
             val paintingsResponse = if (snapshot != null) {
                 val paintings: List<Painting> = snapshot.toObjects<Painting>()
                 Log.d(TAG, "getAllPaintings: ${paintings}")
-                paintingsList.clear()
+                paintingsList = mutableListOf<Painting>()
                 paintingsList.addAll(paintings)
                 Result.Success(paintings)
             } else {

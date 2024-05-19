@@ -1,6 +1,6 @@
 package com.example.ziadartwork.di
 
-import com.example.ziadartwork.data.implementations.PaintingsRepoImpl
+import com.example.ziadartwork.data.repository.PaintingsRepoImpl
 import com.example.ziadartwork.domain.repository.PaintingsRepository
 import dagger.Binds
 import dagger.Module

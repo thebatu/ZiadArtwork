@@ -1,7 +1,7 @@
 package com.example.ziadartwork.di
 
 import com.example.ziadartwork.domain.usecases.CartUseCases
-import com.example.ziadartwork.data.implementations.CartUseCasesImpl
+import com.example.ziadartwork.data.repository.CartUseCasesImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

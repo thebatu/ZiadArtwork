@@ -1,8 +1,9 @@
-package com.example.ziadartwork.data.implementations
+package com.example.ziadartwork.data.repository
 
 import com.example.ziadartwork.domain.repository.CartDataStore
 import android.util.Log
 import androidx.datastore.preferences.core.emptyPreferences
+import com.example.ziadartwork.data.model.CartItem
 import com.example.ziadartwork.domain.repository.CartRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -10,12 +11,13 @@ import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
 
+
 class CartRepositoryImpl @Inject constructor(
     private val cartDataStore: CartDataStore
 ): CartRepository {
     private val TAG = "CartRepositoryImpl"
 
-    override fun getCartContent(): Flow<MutableMap<String, Int>> {
+    override fun getCartContent(): Flow<List<CartItem>> {
         return cartDataStore.getCartContent()
             .catch { exception ->
                 Log.e(TAG, "Exception while getting cart content", exception)
@@ -27,15 +29,16 @@ class CartRepositoryImpl @Inject constructor(
             }
             .map { preferences ->
                 val content = mutableMapOf<String, Int>()
+                val cartItems = mutableListOf<CartItem>()
                 preferences.asMap().forEach { entry ->
                     val key = entry.key.toString()
                     val value = entry.value as? Int
                     if (value != null) {
-                        content[key] = value
+                        cartItems.add(CartItem(key, value))
                     }
                 }
                 Log.d(TAG, "getCartContent: $content")
-                content
+                cartItems.toList()
             }
     }
 

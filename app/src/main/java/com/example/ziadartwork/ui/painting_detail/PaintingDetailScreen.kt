@@ -57,9 +57,8 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
-import com.example.ziadartwork.theme.LocalDimensions
 import com.example.ziadartwork.theme.dimensions
-import com.example.ziadartwork.ui.painting_detail.cart.CartViewModel
+import com.example.ziadartwork.ui.painting_detail.cart.DetailScreenShoppingCartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState
 import kotlinx.coroutines.delay
@@ -82,7 +81,7 @@ fun PaintingDetailSetup(
     val screenWidth = configuration.screenWidthDp.dp.value
     val screenHeight = configuration.screenHeightDp.dp.value
 
-    val shoppingCartViewModel: CartViewModel = hiltViewModel()
+    val cartViewModel: DetailScreenShoppingCartViewModel = hiltViewModel()
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
     var painting by remember(paintingId) { mutableStateOf<Painting?>(null) }
 
@@ -94,7 +93,9 @@ fun PaintingDetailSetup(
         paintingState = paintingViewModel.getPainting(paintingId)
     }
 
-    val cartCount by shoppingCartViewModel.getCurrentPaintingCount(paintingId).collectAsState()
+    val cartCount by cartViewModel
+        .getCurrentPaintingCount(paintingId)
+        .collectAsState()
 
     when (val state = paintingState) {
         is PaintingsUiState.Loading -> {
@@ -104,7 +105,7 @@ fun PaintingDetailSetup(
             // TODO show a toast with the error msg
         }
         is PaintingsUiState.Success -> {
-            PaintingDetailScreen(state.data, navController, shoppingCartViewModel, cartCount, screenHeight, screenWidth)
+            PaintingDetailScreen(state.data, navController, cartViewModel, cartCount, screenHeight, screenWidth)
         }
     }
 }
@@ -113,7 +114,7 @@ fun PaintingDetailSetup(
 fun PaintingDetailScreen(
     painting: Painting?,
     navController: NavHostController,
-    shoppingCartViewModel: CartViewModel,
+    shoppingDetailScreenShoppingCartViewModel: DetailScreenShoppingCartViewModel,
     cartCount: Int,
     screenHeight: Float,
     screenWidth: Float,
@@ -122,7 +123,7 @@ fun PaintingDetailScreen(
     val density: Density = LocalDensity.current
 
     val scope = rememberCoroutineScope()
-    var isCartClicked by remember { mutableStateOf(false) }
+    var enlargeCartIcon by remember { mutableStateOf(false) }
 
     var paintingState by remember {
         mutableStateOf(
@@ -180,7 +181,7 @@ fun PaintingDetailScreen(
 
     //Cart related variables and anim
     val cartScale: Float by animateFloatAsState(
-        if (isCartClicked) 1.6f else 1f,
+        if (enlargeCartIcon) 1.6f else 1f,
         animationSpec = tween(durationMillis = 400),
         label = "cart Scale"
     )
@@ -226,12 +227,12 @@ fun PaintingDetailScreen(
     }
 
     val onCartIconClick: () -> Unit = {
-        isCartClicked = true
+        enlargeCartIcon = true
         scope.launch {
             painting?.let {
-                shoppingCartViewModel.addPaintingToCart(paintingId = it.id)
+                shoppingDetailScreenShoppingCartViewModel.addPainting(paintingId = it.id)
                 delay(200) //needed for the cart animation
-                isCartClicked = false
+                enlargeCartIcon = false
             }
         }
     }
@@ -242,14 +243,14 @@ fun PaintingDetailScreen(
             paintingSize = paintingSize,
             paintingOffset = paintingOffset,
             cartScale = cartScale,
-            isCartClicked = isCartClicked,
+            isCartClicked = enlargeCartIcon,
             paintingState = paintingState,
             togglePaintingSize = togglePaintingSize,
             popBackStack = popBackStack,
             zoomInPainting = zoomInPainting,
             zoomOutPainting = zoomOutPainting,
             currentPaintingCartItemCount = cartCount,
-            shoppingCartViewModel = shoppingCartViewModel,
+            shoppingDetailScreenShoppingCartViewModel = shoppingDetailScreenShoppingCartViewModel,
             onCartIconClick = onCartIconClick,
             screenHeight = screenHeight,
             screenWidth = screenWidth
@@ -270,7 +271,7 @@ fun PaintingDetailContent(
     zoomInPainting: () -> Unit,
     zoomOutPainting: () -> Unit,
     currentPaintingCartItemCount: Int,
-    shoppingCartViewModel: CartViewModel,
+    shoppingDetailScreenShoppingCartViewModel: DetailScreenShoppingCartViewModel,
     onCartIconClick: () -> Unit,
     screenHeight: Float,
     screenWidth: Float,

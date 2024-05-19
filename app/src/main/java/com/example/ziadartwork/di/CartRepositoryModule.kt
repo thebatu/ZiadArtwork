@@ -2,7 +2,7 @@ package com.example.ziadartwork.di
 
 
 import com.example.ziadartwork.domain.repository.CartRepository
-import com.example.ziadartwork.data.implementations.CartRepositoryImpl
+import com.example.ziadartwork.data.repository.CartRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

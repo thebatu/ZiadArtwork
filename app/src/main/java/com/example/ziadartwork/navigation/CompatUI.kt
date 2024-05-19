@@ -2,6 +2,7 @@
 
 package com.example.ziadartwork.navigation
 
+import ShoppingCartScreen
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.ziadartwork.ui.componants.TopBar
 import com.example.ziadartwork.util.WindowSize
 import com.example.ziadartwork.ui.painting_detail.PaintingDetailSetup
 import com.example.ziadartwork.ui.paintings.PaintingsHomeScreen
@@ -23,7 +25,11 @@ fun CompatUI(
 ) {
     val navController = rememberAnimatedNavController()
 
-    Scaffold() { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopBar { navController.navigate(Destination.ShoppingCartDestination.route) }
+        },
+    ) { innerPadding ->
         AnimatedNavHost(
             navController = navController,
             startDestination = Destination.MainDestination.route,
@@ -56,6 +62,11 @@ fun CompatUI(
                 PaintingDetailSetup(paintingId = id.orEmpty(), navController)
 //                MyUI()
             }
+            composable(route = Destination.ShoppingCartDestination.route) {
+                ShoppingCartScreen()
+            }
+
+
         }
     }
 }
