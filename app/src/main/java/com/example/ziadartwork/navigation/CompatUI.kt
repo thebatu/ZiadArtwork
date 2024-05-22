@@ -10,27 +10,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.ziadartwork.ui.componants.TopBar
 import com.example.ziadartwork.util.WindowSize
 import com.example.ziadartwork.ui.painting_detail.PaintingDetailSetup
 import com.example.ziadartwork.ui.paintings.PaintingsHomeScreen
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 
 @Composable
 fun CompatUI(
     windowSize: WindowSize,
 ) {
-    val navController = rememberAnimatedNavController()
+    val navController = rememberNavController()
 
     Scaffold(
         topBar = {
             TopBar { navController.navigate(Destination.ShoppingCartDestination.route) }
         },
     ) { innerPadding ->
-        AnimatedNavHost(
+        NavHost(
             navController = navController,
             startDestination = Destination.MainDestination.route,
             modifier = Modifier.padding(innerPadding),
