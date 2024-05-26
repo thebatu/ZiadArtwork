@@ -58,7 +58,7 @@ import coil.compose.AsyncImage
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
 import com.example.ziadartwork.theme.dimensions
-import com.example.ziadartwork.ui.painting_detail.cart.DetailScreenShoppingCartViewModel
+import com.example.ziadartwork.ui.shoppingcart.DetailScreenShoppingCartViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel
 import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState
 import kotlinx.coroutines.delay
@@ -76,10 +76,8 @@ fun PaintingDetailScreenPreview() {}
 fun PaintingDetailSetup(
     paintingId: String,
     navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp.value
-    val screenHeight = configuration.screenHeightDp.dp.value
 
     val cartViewModel: DetailScreenShoppingCartViewModel = hiltViewModel()
     val paintingViewModel: MainActivityViewModel = hiltViewModel()
@@ -104,8 +102,9 @@ fun PaintingDetailSetup(
         is PaintingsUiState.Error -> {
             // TODO show a toast with the error msg
         }
+        // Render the detail screen when data is loaded successfully
         is PaintingsUiState.Success -> {
-            PaintingDetailScreen(state.data, navController, cartViewModel, cartCount, screenHeight, screenWidth)
+            PaintingDetailScreen(state.data, navController, cartViewModel, cartCount, modifier)
         }
     }
 }
@@ -116,15 +115,17 @@ fun PaintingDetailScreen(
     navController: NavHostController,
     shoppingDetailScreenShoppingCartViewModel: DetailScreenShoppingCartViewModel,
     cartCount: Int,
-    screenHeight: Float,
-    screenWidth: Float,
+    modifier: Modifier
 ) {
 
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp.dp.value
+    val screenHeight = configuration.screenHeightDp.dp.value
     val density: Density = LocalDensity.current
-
     val scope = rememberCoroutineScope()
     var enlargeCartIcon by remember { mutableStateOf(false) }
 
+    // Managing painting state
     var paintingState by remember {
         mutableStateOf(
             PaintingState(
@@ -134,41 +135,19 @@ fun PaintingDetailScreen(
         )
     }
 
-    val zoomInPainting: () -> Unit = {
-        paintingState = paintingState.copy(zoom = ImageZoom.Zoomed)
-    }
+    val zoomInPainting: () -> Unit = { paintingState = paintingState.copy(zoom = ImageZoom.Zoomed) }
+    val zoomOutPainting: () -> Unit = { paintingState = paintingState.copy(zoom = ImageZoom.NotZoomed) }
+    val shrinkPainting: () -> Unit = { paintingState = paintingState.copy(size = ImageSize.Small) }
+    val enlargePainting: () -> Unit = { paintingState = paintingState.copy(size = ImageSize.Large) }
 
-    val zoomOutPainting: () -> Unit = {
-        paintingState = paintingState.copy(zoom = ImageZoom.NotZoomed)
-    }
-
-    val shrinkPainting: () -> Unit = {
-        paintingState = paintingState.copy(size = ImageSize.Small)
-    }
-
-    val enlargePainting: () -> Unit = {
-        paintingState = paintingState.copy(size = ImageSize.Large)
-    }
-
+    // Handle back navigation based on current state
     val popBackStack: () -> Unit = {
         when (paintingState) {
-            PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> {
-                zoomOutPainting()
-            }
-            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> {
-                shrinkPainting()
-            }
-            PaintingState(ImageSize.Large, ImageZoom.Zoomed) -> {
-                shrinkPainting()
-            }
-            PaintingState(
-                ImageSize.Small,
-                ImageZoom.NotZoomed
-            ) -> navController.popBackStack()
-
-            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> {
-                shrinkPainting()
-            }
+            PaintingState(ImageSize.Small, ImageZoom.Zoomed) -> { zoomOutPainting() }
+            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> { shrinkPainting() }
+            PaintingState(ImageSize.Large, ImageZoom.Zoomed) -> { shrinkPainting() }
+            PaintingState(ImageSize.Small, ImageZoom.NotZoomed) -> navController.popBackStack()
+            PaintingState(ImageSize.Large, ImageZoom.NotZoomed) -> { shrinkPainting() }
         }
     }
 
@@ -230,6 +209,7 @@ fun PaintingDetailScreen(
         enlargeCartIcon = true
         scope.launch {
             painting?.let {
+                //TODO move viewModel logic higher in the composable tree
                 shoppingDetailScreenShoppingCartViewModel.addPainting(paintingId = it.id)
                 delay(200) //needed for the cart animation
                 enlargeCartIcon = false
@@ -282,6 +262,7 @@ fun PaintingDetailContent(
         Box(
             modifier = Modifier.offset(paintingOffset.x.dp, paintingOffset.y.dp)
         ) {
+            // Zoomable painting image with gesture handling
             ZoomablePaintingImg(
                 imageUrl = painting.url,
                 modifier = Modifier
@@ -321,6 +302,7 @@ fun PaintingDetailContent(
             }
         }
 
+        // Show painting details and cart icon only if not zoomed
         AnimatedVisibility(
             visible = paintingState.zoom == ImageZoom.NotZoomed && paintingState.size == ImageSize.Small,
             enter = fadeIn() + expandHorizontally(),

@@ -1,4 +1,4 @@
-package com.example.ziadartwork.ui.painting_detail.cart
+package com.example.ziadartwork.ui.shoppingcart
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

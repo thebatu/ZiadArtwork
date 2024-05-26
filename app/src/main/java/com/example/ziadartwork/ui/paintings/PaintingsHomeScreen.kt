@@ -67,9 +67,7 @@ fun PaintingsItemList(
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 200.dp),
-
         modifier = Modifier.fillMaxHeight(),
-
     ) {
         items(paintingsList, key = { item -> item.id }) { painting ->
             PaintingItem(

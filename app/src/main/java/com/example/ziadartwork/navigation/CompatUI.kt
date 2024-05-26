@@ -27,7 +27,11 @@ fun CompatUI(
 
     Scaffold(
         topBar = {
-            TopBar { navController.navigate(Destination.ShoppingCartDestination.route) }
+            TopBar {
+                navController.navigate(Destination.ShoppingCartDestination.route) {
+                    launchSingleTop = true
+                }
+            }
         },
     ) { innerPadding ->
         NavHost(
@@ -37,18 +41,19 @@ fun CompatUI(
         ) {
             composable(route = Destination.MainDestination.route) {
                 PaintingsHomeScreen(
-                    onPaintingSelected = { PaintingID ->
-                        navController.navigate(PaintingID) {
+                    onPaintingSelected = { paintingID ->
+                        navController.navigate(paintingID) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     },
                 )
             }
+
             composable(
                 route = Destination.DetailDestination.route + "/{id}",
                 arguments = listOf(
@@ -62,6 +67,7 @@ fun CompatUI(
                 PaintingDetailSetup(paintingId = id.orEmpty(), navController)
 //                MyUI()
             }
+
             composable(route = Destination.ShoppingCartDestination.route) {
                 ShoppingCartScreen()
             }
