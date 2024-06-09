@@ -104,7 +104,13 @@ fun PaintingDetailSetup(
         }
         // Render the detail screen when data is loaded successfully
         is PaintingsUiState.Success -> {
-            PaintingDetailScreen(state.data, navController, cartViewModel, cartCount, modifier)
+            PaintingDetailScreen(
+                state.data,
+                navController,
+                cartViewModel,
+                cartCount,
+                modifier
+            )
         }
     }
 }
@@ -223,6 +229,7 @@ fun PaintingDetailScreen(
             paintingSize = paintingSize,
             paintingOffset = paintingOffset,
             cartScale = cartScale,
+            modifier = modifier,
             isCartClicked = enlargeCartIcon,
             paintingState = paintingState,
             togglePaintingSize = togglePaintingSize,
@@ -233,7 +240,7 @@ fun PaintingDetailScreen(
             shoppingDetailScreenShoppingCartViewModel = shoppingDetailScreenShoppingCartViewModel,
             onCartIconClick = onCartIconClick,
             screenHeight = screenHeight,
-            screenWidth = screenWidth
+            screenWidth = screenWidth,
         )
     }
 }
@@ -244,6 +251,7 @@ fun PaintingDetailContent(
     paintingSize: Dp,
     paintingOffset: Offset,
     cartScale: Float,
+    modifier: Modifier,
     isCartClicked: Boolean,
     paintingState: PaintingState,
     togglePaintingSize: () -> Unit,
@@ -257,7 +265,7 @@ fun PaintingDetailContent(
     screenWidth: Float,
 ) {
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
         Box(
             modifier = Modifier.offset(paintingOffset.x.dp, paintingOffset.y.dp)

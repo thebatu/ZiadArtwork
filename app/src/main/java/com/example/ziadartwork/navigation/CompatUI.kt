@@ -8,38 +8,31 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.ziadartwork.ui.componants.TopBar
 import com.example.ziadartwork.util.WindowSize
 import com.example.ziadartwork.ui.painting_detail.PaintingDetailSetup
 import com.example.ziadartwork.ui.paintings.PaintingsHomeScreen
 
 @Composable
 fun CompatUI(
-    windowSize: WindowSize,
+    navController: NavHostController,
+    insets: Modifier,
 ) {
-    val navController = rememberNavController()
 
-    Scaffold(
-        topBar = {
-            TopBar {
-                navController.navigate(Destination.ShoppingCartDestination.route) {
-                    launchSingleTop = true
-                }
-            }
-        },
-    ) { innerPadding ->
+    Scaffold() { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Destination.MainDestination.route,
+            startDestination = TopLevelDestination.MainDestination.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(route = Destination.MainDestination.route) {
+            composable(route = TopLevelDestination.MainDestination.route) {
                 PaintingsHomeScreen(
                     onPaintingSelected = { paintingID ->
                         navController.navigate(paintingID) {
@@ -55,7 +48,7 @@ fun CompatUI(
             }
 
             composable(
-                route = Destination.DetailDestination.route + "/{id}",
+                route = TopLevelDestination.DetailDestination.route + "/{id}",
                 arguments = listOf(
                     navArgument("id") {
                         type = NavType.StringType
@@ -64,11 +57,15 @@ fun CompatUI(
                 ),
             ) { backStackEntry ->
                 val id = backStackEntry.arguments?.getString("id")
-                PaintingDetailSetup(paintingId = id.orEmpty(), navController)
+                PaintingDetailSetup(
+                    paintingId = id.orEmpty(),
+                    navController,
+                    modifier = insets.padding(innerPadding)
+                )
 //                MyUI()
             }
 
-            composable(route = Destination.ShoppingCartDestination.route) {
+            composable(route = TopLevelDestination.ShoppingCartDestination.route) {
                 ShoppingCartScreen()
             }
 

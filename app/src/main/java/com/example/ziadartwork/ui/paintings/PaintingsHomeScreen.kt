@@ -2,10 +2,20 @@ package com.example.ziadartwork.ui.paintings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -14,7 +24,6 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,15 +39,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.ziadartwork.navigation.Destination
 import com.example.ziadartwork.R
 import com.example.ziadartwork.data.model.Painting
-import com.example.ziadartwork.theme.LocalDimensions
+import com.example.ziadartwork.navigation.TopLevelDestination
 import com.example.ziadartwork.theme.dimensions
-import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.*
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.Error
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.Loading
+import com.example.ziadartwork.ui.paintings.MainActivityViewModel.PaintingsUiState.Success
 
 @Composable
 fun PaintingsHomeScreen(
+    modifier: Modifier = Modifier,
     onPaintingSelected: (String) -> Unit = {},
     viewModel: MainActivityViewModel = hiltViewModel(),
 ) {
@@ -54,7 +65,8 @@ fun PaintingsHomeScreen(
             val paintingList = state.data
             PaintingsItemList(
                 paintingsList = paintingList,
-                onPaintingSelected = onPaintingSelected
+                onPaintingSelected = onPaintingSelected,
+                modifier = modifier,
             )
         }
     }
@@ -64,10 +76,13 @@ fun PaintingsHomeScreen(
 fun PaintingsItemList(
     paintingsList: List<Painting>,
     onPaintingSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 200.dp),
-        modifier = Modifier.fillMaxHeight(),
+        modifier = modifier
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+            .fillMaxHeight(),
     ) {
         items(paintingsList, key = { item -> item.id }) { painting ->
             PaintingItem(
@@ -77,7 +92,7 @@ fun PaintingsItemList(
                 id = painting.id,
                 onPaintingSelected = onPaintingSelected,
 
-            )
+                )
         }
     }
 }
@@ -115,7 +130,7 @@ fun PaintingItem(
                 .padding(MaterialTheme.dimensions.extraSmall)
                 .clickable(
                     onClick = {
-                        onPaintingSelected(Destination.DetailDestination.withArgs(id))
+                        onPaintingSelected(TopLevelDestination.DetailDestination.withArgs(id))
                     },
                 )
                 .border(BorderStroke(1.dp, Color.Black)),
